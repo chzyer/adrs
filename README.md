@@ -1,4 +1,4 @@
-# adrs
+# ADRS
 A DNS recursion server implements by golang, adrs is stand for "An Dns Recursion Server".  
 Which will supports protocols like HTTP, TCP, UDP, then use redis to storage cached records.
 
