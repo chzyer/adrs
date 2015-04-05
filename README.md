@@ -3,9 +3,10 @@ A DNS recursion server implements by golang, adrs is stand for "An Dns Recursion
 Which will supports protocols like HTTP, TCP, UDP, then use redis to storage cached records.
 
 ### Feature
-* supports protocol like HTTP, TCP, UDP
-* supports router based (sub)domain to direct the foreign name server addr(s).
+* supports protocol like HTTP, TCP, UDP.
+* supports routers which based on (sub)domain to direct to foreign name servers.
 * supports wrong records detection.
+* supports custom(internal) domain resolves (may needs a web dashboard).
 
 ### Topology
 ```
