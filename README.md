@@ -1,7 +1,7 @@
 # ADRS (A Dns Recursion Server)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
 [![Build Status](https://travis-ci.org/chzyer/adrs.svg?branch=master)](https://travis-ci.org/chzyer/adrs)
 [![Coverage Status](https://coveralls.io/repos/chzyer/adrs/badge.svg?branch=master)](https://coveralls.io/r/chzyer/adrs?branch=master)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
 [![GoDoc](https://godoc.org/github.com/chzyer/adrs?status.svg)](https://godoc.org/github.com/chzyer/adrs)
 
 A DNS recursion server implements by golang.  
