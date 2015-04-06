@@ -3,6 +3,7 @@ package main
 import (
 	"net"
 
+	"github.com/chzyer/adrs/dns"
 	"gopkg.in/logex.v1"
 )
 
@@ -25,7 +26,7 @@ func main() {
 			logex.Fatal(err)
 		}
 
-		NewHeader(b[:n])
+		dns.NewHeader(b[:n])
 		if addr != nil {
 			logex.Info(n, b[:n], addr)
 		}
