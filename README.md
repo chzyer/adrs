@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/chzyer/adrs/badge.svg?branch=master)](https://coveralls.io/r/chzyer/adrs?branch=master)
 [![GoDoc](https://godoc.org/github.com/chzyer/adrs?status.svg)](https://godoc.org/github.com/chzyer/adrs)
 
-A implementation of recursive DNS Server in the [Go programming language](https://golang.org).
+A implementation of recursive DNS Server in [the Go programming language](https://golang.org).   
 `ADRS` will support protocols like HTTP, TCP, UDP, and use [redis](http://redis.io) to store records cached.
 
 **NOTE: THIS PROJECT IS STILL UNDER DEVELOPMENT!**
