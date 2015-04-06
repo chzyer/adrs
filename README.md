@@ -5,7 +5,7 @@
 [![GoDoc](https://godoc.org/github.com/chzyer/adrs?status.svg)](https://godoc.org/github.com/chzyer/adrs)
 
 A DNS recursion server implements by golang.  
-Which will supports protocols like HTTP, TCP, UDP, then use redis to storage cached records.
+Which will supports protocols like HTTP, TCP, UDP, then use redis to store cached records.
 
 **NOTE: THIS PROJECT STILL UNDER DEVELOPING!**
 
