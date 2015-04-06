@@ -1,10 +1,10 @@
 package dns
 
 // A one bit field that specifies whether this message is a query (0), or a response (1).
-type H_QRTYPE int
+type HQRTYPE int
 
 const (
-	_ H_QRTYPE = 0
+	_ HQRTYPE = 0
 
 	QR_QUERY = 0
 	QR_RESP  = 1
@@ -17,10 +17,10 @@ const (
 //     1               an inverse query (IQUERY)
 //     2               a server status request (STATUS)
 //     3-15            reserved for future use
-type H_OPCODE int
+type HOPCODE int
 
 const (
-	_ H_OPCODE = 0
+	_ HOPCODE = 0
 
 	OPCODE_QUERY  = 0
 	OPCODE_IQUERY = 1
@@ -35,11 +35,21 @@ const (
 // multiple owner names because of aliases.  The AA bit
 // corresponds to the name which matches the query name, or
 // the first owner name in the answer section.
-type H_AA int
+type HAA bool
 
 const (
-	_ H_AA = 0
+	_ HAA = 0
 
-	AA_NO  = 0
-	AA_YES = 1
+	AA_NO  = false
+	AA_YES = true
+)
+
+// TrunCation - specifies that this message was truncated
+// due to length greater than that permitted on the
+// transmission channel.
+type HTC int
+
+const (
+	_ HTC = 0
+	TC
 )
