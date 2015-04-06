@@ -38,7 +38,7 @@ const (
 type HAA bool
 
 const (
-	_ HAA = 0
+	_ HAA = false
 
 	AA_NO  = false
 	AA_YES = true

@@ -26,8 +26,8 @@ func NewHeader(b []byte) (h *DNSHeader, err error) {
 		err = logex.Trace(err)
 		return
 	}
-	h.QR = H_QRTYPE(option >> 15)
-	h.OpCode = H_OPCODE(uint8(option>>11) & uint8(15))
-	h.AA = AA(uint8(option>>10) & 1)
+	h.QR = HQRTYPE(option >> 15)
+	h.OpCode = HOPCODE(uint8(option>>11) & uint8(15))
+
 	return
 }
