@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# usage: ./goverall.sh [func|html]
+# default: generate cover.out
+
 mkdir -p .cover
 go list ./... | xargs -I% bash -c 'name="%"; go test % --coverprofile=.cover/${name//\//_}'
 echo "mode: set" > cover.out
