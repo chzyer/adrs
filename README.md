@@ -7,7 +7,7 @@
 A DNS recursion server implements by golang.  
 Which will supports protocols like HTTP, TCP, UDP, then use redis to store cached records.
 
-**NOTE: THIS PROJECT IS STILL UNDER DEVELOPING!**
+**NOTE: THIS PROJECT IS STILL UNDER DEVELOPMENT!**
 
 ### Feature
 * supports protocol like HTTP, TCP, UDP.
