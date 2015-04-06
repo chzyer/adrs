@@ -21,13 +21,14 @@ func NewHeader(b []byte) (h *DNSHeader, err error) {
 		err = logex.Trace(err)
 		return
 	}
-	option, err := rr.ReadUint16()
+	option16, err := rr.ReadUint16()
 	if err != nil {
 		err = logex.Trace(err)
 		return
 	}
-	h.QR = HQRTYPE(option >> 15)
-	h.OpCode = HOPCODE(uint8(option>>11) & uint8(15))
+	option := uint64(option16)
+	h.QR = HQRTYPE(utils.Read8Bit(option, 16, 1))
+	h.OpCode = HOPCODE(utils.Read8Bit(option, 15, 4))
 
 	return
 }

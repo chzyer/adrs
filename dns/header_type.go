@@ -4,10 +4,8 @@ package dns
 type HQRTYPE int
 
 const (
-	_ HQRTYPE = 0
-
-	QR_QUERY = 0
-	QR_RESP  = 1
+	QR_QUERY HQRTYPE = 0
+	QR_RESP          = 1
 )
 
 // A four bit field that specifies kind of query in this
@@ -20,11 +18,9 @@ const (
 type HOPCODE int
 
 const (
-	_ HOPCODE = 0
-
-	OPCODE_QUERY  = 0
-	OPCODE_IQUERY = 1
-	OPCODE_STATUS = 2
+	OPCODE_QUERY  HOPCODE = 0
+	OPCODE_IQUERY         = 1
+	OPCODE_STATUS         = 2
 )
 
 // Authoritative Answer - this bit is valid in responses,
@@ -37,19 +33,7 @@ const (
 // the first owner name in the answer section.
 type HAA bool
 
-const (
-	_ HAA = false
-
-	AA_NO  = false
-	AA_YES = true
-)
-
 // TrunCation - specifies that this message was truncated
 // due to length greater than that permitted on the
 // transmission channel.
-type HTC int
-
-const (
-	_ HTC = 0
-	TC
-)
+type HTC bool
