@@ -31,7 +31,7 @@ import (
 //     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 type DNSResource struct {
 	// a domain name to which this resource record pertains.
-	Name []string
+	Name []byte
 
 	// Two octets containing one of the RR type codes.  This
 	// field specifies the meaning of the data in the RDATA
@@ -62,7 +62,7 @@ type DNSResource struct {
 }
 
 func NewDNSResource(r *utils.RecordReader) (*DNSResource, error) {
-	qName, err := utils.ReadByFirstByte(r)
+	qName, err := r.ReadBytes(2)
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
