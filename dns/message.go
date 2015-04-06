@@ -32,6 +32,35 @@ func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
 	return m, nil
 }
 
+func (m *DNSMessage) Equal(m2 *DNSMessage) bool {
+	if m != nil && m2 == nil || m == nil && m2 != nil {
+		return false
+	}
+
+	if !m.Header.Equal(m2.Header) {
+		return false
+	}
+
+	if len(m.Questions) != len(m2.Questions) ||
+		len(m.Resources) != len(m2.Resources) {
+		return false
+	}
+
+	for idx := range m.Questions {
+		if !m.Questions[idx].Equal(m2.Questions[idx]) {
+			return false
+		}
+	}
+
+	for idx := range m.Resources {
+		if !m.Resources[idx].Equal(m2.Resources[idx]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (m *DNSMessage) getQuestions(r *utils.RecordReader, count int) ([]*DNSQuestion, error) {
 	var (
 		err error

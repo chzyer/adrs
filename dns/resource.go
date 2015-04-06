@@ -1,6 +1,8 @@
 package dns
 
 import (
+	"bytes"
+
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
@@ -101,4 +103,16 @@ func NewDNSResource(r *utils.RecordReader) (*DNSResource, error) {
 		RDLength: qRDLength,
 		RData:    qRData,
 	}, nil
+}
+
+func (r *DNSResource) Equal(r2 *DNSResource) bool {
+	if r != nil && r2 == nil || r == nil && r2 != nil {
+		return false
+	}
+
+	return !(bytes.Equal(r.Name, r2.Name) &&
+		r.Class != r2.Class ||
+		r.Type != r2.Type ||
+		r.TTL != r2.TTL ||
+		!bytes.Equal(r.RData, r2.RData))
 }

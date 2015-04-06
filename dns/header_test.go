@@ -80,21 +80,7 @@ func TestHeader(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if h.ID != header.ID ||
-			h.Option.QR != header.Option.QR ||
-			h.Option.OpCode != header.Option.OpCode ||
-			h.Option.AA != header.Option.AA ||
-			h.Option.TC != header.Option.TC ||
-			h.Option.RD != header.Option.RD ||
-			h.Option.RA != header.Option.RA ||
-			h.Option.Z != header.Option.Z ||
-			h.Option.Rcode != header.Option.Rcode ||
-			h.QDCount != header.QDCount ||
-			h.ANCount != header.ANCount ||
-			h.NSCount != header.NSCount ||
-			h.ARCount != header.ARCount ||
-			false {
-
+		if !h.Equal(&header.DNSHeader) {
 			logex.Pretty(h, header)
 			t.Fatal("parse fail")
 		}

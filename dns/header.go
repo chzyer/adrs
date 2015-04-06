@@ -52,3 +52,23 @@ func NewDNSHeader(rr *utils.RecordReader) (h *DNSHeader, err error) {
 
 	return
 }
+
+func (h *DNSHeader) Equal(h2 *DNSHeader) bool {
+	if h != nil && h2 == nil || h == nil && h2 != nil {
+		return false
+	}
+
+	return !(h.ID != h2.ID ||
+		h.Option.QR != h2.Option.QR ||
+		h.Option.OpCode != h2.Option.OpCode ||
+		h.Option.AA != h2.Option.AA ||
+		h.Option.TC != h2.Option.TC ||
+		h.Option.RD != h2.Option.RD ||
+		h.Option.RA != h2.Option.RA ||
+		h.Option.Z != h2.Option.Z ||
+		h.Option.Rcode != h2.Option.Rcode ||
+		h.QDCount != h2.QDCount ||
+		h.ANCount != h2.ANCount ||
+		h.NSCount != h2.NSCount ||
+		h.ARCount != h2.ARCount)
+}

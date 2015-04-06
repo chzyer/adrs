@@ -156,3 +156,13 @@ func NewDNSQuestion(r *utils.RecordReader) (*DNSQuestion, error) {
 		QClass: QCLASS(qClass),
 	}, nil
 }
+
+func (q *DNSQuestion) Equal(q2 *DNSQuestion) bool {
+	if q != nil && q2 == nil || q == nil && q2 != nil {
+		return false
+	}
+
+	return !(!utils.CmpString(q.QName, q2.QName) ||
+		q.QType != q2.QType ||
+		q.QClass != q2.QClass)
+}

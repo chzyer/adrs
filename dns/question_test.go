@@ -3,7 +3,6 @@ package dns
 import (
 	"testing"
 
-	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
 
@@ -38,11 +37,7 @@ func TestQuestion(t *testing.T) {
 			logex.Fatal(err)
 		}
 
-		if !utils.CmpString(question.QName, q.question.QName) ||
-			question.QType != q.question.QType ||
-			question.QClass != q.question.QClass ||
-			false {
-
+		if !question.Equal(q.question) {
 			logex.Pretty(question, q.question)
 			t.Fatal("result not except!")
 		}

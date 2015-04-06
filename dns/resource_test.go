@@ -1,7 +1,6 @@
 package dns
 
 import (
-	"bytes"
 	"testing"
 
 	"gopkg.in/logex.v1"
@@ -55,13 +54,7 @@ func TestAnswer(t *testing.T) {
 				logex.Fatal(err)
 			}
 
-			if !bytes.Equal(answer.Name, q.answer[i].Name) ||
-				answer.Class != q.answer[i].Class ||
-				answer.Type != q.answer[i].Type ||
-				answer.TTL != q.answer[i].TTL ||
-				!bytes.Equal(answer.RData, q.answer[i].RData) ||
-				false {
-
+			if !answer.Equal(q.answer[i]) {
 				logex.Info(answer)
 				t.Error("result not except")
 			}
