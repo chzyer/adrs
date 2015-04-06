@@ -11,6 +11,27 @@ func toUint16(data []byte) (ret uint16) {
 func Read8Bit(data uint64, start, length uint) uint8 {
 	// generate length*1
 	mask := uint64(1<<length - 1)
-	data >>= start - length
+	data >>= start
 	return uint8(data & mask)
+}
+
+func ReadBitBool(data uint64, pos uint) bool {
+	data >>= pos
+	if data&1 == 1 {
+		return true
+	}
+	return false
+}
+
+func CmpString(s1, s2 []string) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+
+	for i := range s1 {
+		if s1[i] != s2[i] {
+			return false
+		}
+	}
+	return true
 }

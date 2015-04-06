@@ -26,7 +26,11 @@ func main() {
 			logex.Fatal(err)
 		}
 
-		dns.NewHeader(b[:n])
+		msg, err := dns.NewMessage(b[:n])
+		if err != nil {
+			logex.Fatal(err)
+		}
+		logex.Pretty(msg)
 		if addr != nil {
 			logex.Info(n, b[:n], addr)
 		}

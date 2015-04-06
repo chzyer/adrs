@@ -1,34 +1,60 @@
 package dns
 
 import (
+	"errors"
+
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
 
+var (
+	ErrShortRead = errors.New("short read!")
+)
+
 type DNSHeader struct {
-	ID         uint16
-	QR         HQRTYPE
-	OpCode     HOPCODE
-	AA         HAA
+	ID     uint16
+	Option *DNSHeaderOption
+
+	// specifying the number of entries in the question section.
+	QDCount uint16
+
+	// specifying the number of resource records in the answer section.
+	ANCount uint16
+
+	// specifying the number of name server resource records
+	// in the authority records section.
+	NSCount uint16
+
+	// specifying the number of resource records in the additional records section.
+	ARCount uint16
+
 	underlying []byte
 }
 
-func NewHeader(b []byte) (h *DNSHeader, err error) {
-	rr := utils.NewRecordReader(b)
+func NewDNSHeader(rr *utils.RecordReader) (h *DNSHeader, err error) {
 	h = new(DNSHeader)
 	h.ID, err = rr.ReadUint16()
 	if err != nil {
 		err = logex.Trace(err)
 		return
 	}
-	option16, err := rr.ReadUint16()
+
+	option, err := rr.ReadUint16()
 	if err != nil {
 		err = logex.Trace(err)
 		return
 	}
-	option := uint64(option16)
-	h.QR = HQRTYPE(utils.Read8Bit(option, 16, 1))
-	h.OpCode = HOPCODE(utils.Read8Bit(option, 15, 4))
+	h.Option = NewDNSHeaderOption(uint64(option))
+
+	refs := []*uint16{&h.QDCount, &h.ANCount, &h.NSCount, &h.ARCount}
+
+	for _, ref := range refs {
+		*ref, err = rr.ReadUint16()
+		if err != nil {
+			err = logex.Trace(err)
+			return
+		}
+	}
 
 	return
 }
