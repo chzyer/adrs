@@ -7,9 +7,9 @@ import (
 
 type DNSHeader struct {
 	ID         uint16
-	QR         H_QRTYPE
-	OpCode     H_OPCODE
-	AA         H_AA
+	QR         HQRTYPE
+	OpCode     HOPCODE
+	AA         HAA
 	underlying []byte
 }
 
