@@ -1,19 +1,19 @@
-# ADRS (A Dns Recursive Server)
+# REDS (REcursive DNS Server)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
 [![Build Status](https://travis-ci.org/chzyer/adrs.svg?branch=master)](https://travis-ci.org/chzyer/adrs)
 [![Coverage Status](https://coveralls.io/repos/chzyer/adrs/badge.svg?branch=master)](https://coveralls.io/r/chzyer/adrs?branch=master)
 [![GoDoc](https://godoc.org/github.com/chzyer/adrs?status.svg)](https://godoc.org/github.com/chzyer/adrs)
 
-A DNS recursion server implements by golang.  
-Which will supports protocols like HTTP, TCP, UDP, then use redis to store cached records.
+A implementation of recursive DNS Server in the [Go programming language](https://golang.org).
+`ADRS` will support protocols like HTTP, TCP, UDP, and use [redis](http://redis.io) to store records cached.
 
 **NOTE: THIS PROJECT IS STILL UNDER DEVELOPMENT!**
 
 ### Feature
-* supports protocol like HTTP, TCP, UDP.
-* supports routers which based on (sub)domain to direct to foreign name servers.
-* supports wrong records detection.
-* supports custom(internal) domain resolves (may needs a web dashboard).
+* Support protocol like HTTP, TCP, UDP.
+* Support routers which is based on (sub)domain to direct to foreign name servers.
+* Support wrong records detection.
+* Support custom(internal) domain resolves (may needs a web dashboard).
 
 ### Topology
 ```
@@ -50,5 +50,3 @@ Which will supports protocols like HTTP, TCP, UDP, then use redis to store cache
                                 +------------------|--| Server |
                              maintenance responses |  +--------+
 ```
-
-To be continue.
