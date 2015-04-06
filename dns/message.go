@@ -11,26 +11,24 @@ type DNSMessage struct {
 	Resources []*DNSResource
 }
 
-func NewDNSMessage(b []byte) (*DNSMessage, error) {
+func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
 	var err error
 	m := new(DNSMessage)
-	rr := utils.NewRecordReader(b)
-	m.Header, err = NewDNSHeader(rr)
+	m.Header, err = NewDNSHeader(r)
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
 
-	m.Questions, err = m.getQuestions(rr, int(m.Header.QDCount))
+	m.Questions, err = m.getQuestions(r, int(m.Header.QDCount))
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
 
-	m.Resources, err = m.getResources(rr, int(m.Header.ANCount))
+	m.Resources, err = m.getResources(r, int(m.Header.ANCount))
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
 
-	logex.Info(rr.RemainBytes())
 	return m, nil
 }
 

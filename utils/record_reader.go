@@ -64,7 +64,7 @@ func (r *RecordReader) ReadUint32() (uint32, error) {
 	if err != nil {
 		return 0, logex.Trace(err)
 	}
-	return toUint32(d), nil
+	return ToUint32(d), nil
 }
 
 func (r *RecordReader) ReadUint16() (uint16, error) {
@@ -72,7 +72,7 @@ func (r *RecordReader) ReadUint16() (uint16, error) {
 	if err != nil {
 		return 0, logex.Trace(err)
 	}
-	return toUint16(d), nil
+	return ToUint16(d), nil
 }
 
 func (r *RecordReader) ReadByte() (byte, error) {

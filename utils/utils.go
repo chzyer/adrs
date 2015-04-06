@@ -2,7 +2,7 @@ package utils
 
 import "gopkg.in/logex.v1"
 
-func toUint16(data []byte) (ret uint16) {
+func ToUint16(data []byte) (ret uint16) {
 	for i := range data {
 		ret <<= 8
 		ret += uint16(data[i])
@@ -10,7 +10,7 @@ func toUint16(data []byte) (ret uint16) {
 	return
 }
 
-func toUint32(data []byte) (ret uint32) {
+func ToUint32(data []byte) (ret uint32) {
 	for i := range data {
 		ret <<= 8
 		ret += uint32(data[i])
