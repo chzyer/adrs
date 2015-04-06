@@ -5,14 +5,14 @@ import (
 	"gopkg.in/logex.v1"
 )
 
-type Message struct {
+type DNSMessage struct {
 	Header   *DNSHeader
 	Question []*DNSQuestion
 }
 
-func NewMessage(b []byte) (*Message, error) {
+func NewDNSMessage(b []byte) (*DNSMessage, error) {
 	var err error
-	m := new(Message)
+	m := new(DNSMessage)
 	rr := utils.NewRecordReader(b)
 	m.Header, err = NewDNSHeader(rr)
 	if err != nil {
@@ -27,7 +27,7 @@ func NewMessage(b []byte) (*Message, error) {
 	return m, nil
 }
 
-func (m *Message) getQuestions(r *utils.RecordReader, count int) ([]*DNSQuestion, error) {
+func (m *DNSMessage) getQuestions(r *utils.RecordReader, count int) ([]*DNSQuestion, error) {
 	var (
 		err error
 		ret = make([]*DNSQuestion, count)

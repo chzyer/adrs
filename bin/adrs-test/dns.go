@@ -26,7 +26,7 @@ func main() {
 			logex.Fatal(err)
 		}
 
-		msg, err := dns.NewMessage(b[:n])
+		msg, err := dns.NewDNSMessage(b[:n])
 		if err != nil {
 			logex.Fatal(err)
 		}
