@@ -162,7 +162,7 @@ func (q *DNSQuestion) Equal(q2 *DNSQuestion) bool {
 		return false
 	}
 
-	return !(!utils.CmpString(q.QName, q2.QName) ||
+	return !(!utils.CmpStrings(q.QName, q2.QName) ||
 		q.QType != q2.QType ||
 		q.QClass != q2.QClass)
 }

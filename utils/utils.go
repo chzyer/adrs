@@ -33,7 +33,7 @@ func ReadBitBool(data uint64, pos uint) bool {
 	return false
 }
 
-func CmpString(s1, s2 []string) bool {
+func CmpStrings(s1, s2 []string) bool {
 	if len(s1) != len(s2) {
 		return false
 	}
