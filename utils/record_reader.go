@@ -39,6 +39,10 @@ func (r *RecordReader) Read(b []byte) (int, error) {
 	return n, nil
 }
 
+func (r *RecordReader) ReadBytes(n int) ([]byte, error) {
+	return r.read(n)
+}
+
 func (r *RecordReader) read(i int) ([]byte, error) {
 	if r.readed+i > len(r.underlying) {
 		return nil, logex.Trace(io.EOF)
@@ -53,6 +57,14 @@ func (r *RecordReader) ReadUint8() (uint8, error) {
 		return 0, logex.Trace(err)
 	}
 	return uint8(b), nil
+}
+
+func (r *RecordReader) ReadUint32() (uint32, error) {
+	d, err := r.read(4)
+	if err != nil {
+		return 0, logex.Trace(err)
+	}
+	return toUint32(d), nil
 }
 
 func (r *RecordReader) ReadUint16() (uint16, error) {
@@ -73,6 +85,12 @@ func (r *RecordReader) ReadByte() (byte, error) {
 
 func (r *RecordReader) Peek(n int) []byte {
 	ret := make([]byte, n)
+	copy(ret, r.underlying[r.readed:])
+	return ret
+}
+
+func (r *RecordReader) RemainBytes() []byte {
+	ret := make([]byte, len(r.underlying)-r.readed)
 	copy(ret, r.underlying[r.readed:])
 	return ret
 }

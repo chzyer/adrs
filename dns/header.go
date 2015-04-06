@@ -1,14 +1,8 @@
 package dns
 
 import (
-	"errors"
-
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
-)
-
-var (
-	ErrShortRead = errors.New("short read!")
 )
 
 type DNSHeader struct {

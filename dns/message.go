@@ -6,8 +6,9 @@ import (
 )
 
 type DNSMessage struct {
-	Header   *DNSHeader
-	Question []*DNSQuestion
+	Header    *DNSHeader
+	Questions []*DNSQuestion
+	Resources []*DNSResource
 }
 
 func NewDNSMessage(b []byte) (*DNSMessage, error) {
@@ -19,11 +20,17 @@ func NewDNSMessage(b []byte) (*DNSMessage, error) {
 		return nil, logex.Trace(err)
 	}
 
-	m.Question, err = m.getQuestions(rr, int(m.Header.QDCount))
+	m.Questions, err = m.getQuestions(rr, int(m.Header.QDCount))
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
 
+	m.Resources, err = m.getResources(rr, int(m.Header.ANCount))
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+
+	logex.Info(rr.RemainBytes())
 	return m, nil
 }
 
@@ -39,6 +46,23 @@ func (m *DNSMessage) getQuestions(r *utils.RecordReader, count int) ([]*DNSQuest
 			err = logex.Trace(err)
 			return nil, err
 		}
+	}
+	return ret, nil
+}
+
+func (m *DNSMessage) getResources(r *utils.RecordReader, count int) ([]*DNSResource, error) {
+	var (
+		err error
+		ret = make([]*DNSResource, count)
+	)
+
+	for i := 0; i < int(count); i++ {
+		ret[i], err = NewDNSResource(r)
+		if err != nil {
+			err = logex.Trace(err)
+			return nil, err
+		}
+
 	}
 	return ret, nil
 }
