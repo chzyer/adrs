@@ -1,10 +1,11 @@
 # ADRS - A DNS(Recursive) server
 
-[![Join the chat at https://gitter.im/chzyer/adrs](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/chzyer/adrs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
 [![Build Status](https://travis-ci.org/chzyer/adrs.svg?branch=master)](https://travis-ci.org/chzyer/adrs)
 [![Coverage Status](https://coveralls.io/repos/chzyer/adrs/badge.svg?branch=master)](https://coveralls.io/r/chzyer/adrs?branch=master)
 [![GoDoc](https://godoc.org/github.com/chzyer/adrs?status.svg)](https://godoc.org/github.com/chzyer/adrs)
+[![Join the chat at https://gitter.im/chzyer/adrs](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/chzyer/adrs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 A implementation of recursive DNS Server in [the Go programming language](https://golang.org).   
 `ADRS` will support protocols like HTTP, TCP, UDP, and use [redis](http://redis.io) to store records cached.
