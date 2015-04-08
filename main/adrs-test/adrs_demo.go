@@ -29,6 +29,8 @@ func main() {
 		if err != nil {
 			logex.Fatal(err)
 		}
+
+		println(n)
 		go func() {
 			r := utils.NewRecordReader(b[:n])
 			msg, err := dns.NewDNSMessage(r)
