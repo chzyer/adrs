@@ -52,7 +52,7 @@ var testHeader = []headerMatch{
 }
 
 func stringToReader(s string) *utils.RecordReader {
-	return utils.NewRecordReader(stringToByte(s))
+	return utils.NewRecordReader(byteToBlock(stringToByte(s)))
 }
 
 func stringToByte(s string) []byte {
@@ -75,7 +75,7 @@ func testGetHeader(i int) headerMatch {
 func TestHeader(t *testing.T) {
 	for i := 0; i < len(testHeader); i++ {
 		header := testGetHeader(i)
-		h, err := NewDNSHeader(utils.NewRecordReader(header.data))
+		h, err := NewDNSHeader(utils.NewRecordReader(byteToBlock(header.data)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -86,4 +86,11 @@ func TestHeader(t *testing.T) {
 		}
 	}
 
+}
+
+func byteToBlock(b []byte) *utils.Block {
+	return &utils.Block{
+		All:    b,
+		Length: len(b),
+	}
 }
