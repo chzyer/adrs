@@ -9,6 +9,7 @@ type DNSMessage struct {
 	Header    *DNSHeader
 	Questions []*DNSQuestion
 	Resources []*DNSResource
+	reader    *utils.RecordReader
 }
 
 func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
@@ -29,7 +30,12 @@ func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
 		return nil, logex.Trace(err)
 	}
 
+	m.reader = r
 	return m, nil
+}
+
+func (m *DNSMessage) Block() *utils.Block {
+	return m.reader.Block()
 }
 
 func (m *DNSMessage) Equal(m2 *DNSMessage) bool {

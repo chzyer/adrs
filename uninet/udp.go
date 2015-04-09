@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 
+	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
 
@@ -13,6 +14,20 @@ var (
 
 type UDP struct {
 	conn *net.UDPConn
+}
+
+func NewDialUDP(addr string) (*UDP, error) {
+	c, err := net.Dial("udp", addr)
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+	conn := c.(*net.UDPConn)
+	conn.SetWriteBuffer(512)
+	conn.SetReadBuffer(512)
+	u := &UDP{
+		conn: conn,
+	}
+	return u, nil
 }
 
 func NewUDP(host string) (*UDP, error) {
@@ -32,21 +47,33 @@ func NewUDP(host string) (*UDP, error) {
 	return u, nil
 }
 
-func (c *UDP) ReadBlock(b []byte) (int, *net.UDPAddr, error) {
-	n, addr, err := c.conn.ReadFromUDP(b)
+func (c *UDP) ReadBlock(b *utils.Block) (*net.UDPAddr, error) {
+	n, addr, err := c.conn.ReadFromUDP(b.All)
 	if err != nil {
-		return 0, nil, logex.Trace(err)
+		return nil, logex.Trace(err)
 	}
 
-	return n, addr, nil
+	b.Length = n
+	return addr, nil
 }
 
-func (c *UDP) WriteBlock(b []byte, addr *net.UDPAddr) error {
-	n, err := c.conn.WriteToUDP(b, addr)
+func (c *UDP) WriteBlock(b *utils.Block) error {
+	n, err := c.conn.Write(b.Bytes())
 	if err != nil {
 		return logex.Trace(err)
 	}
-	if n != len(b) {
+	if n != b.Length {
+		return logex.Trace(ErrShortWritten)
+	}
+	return nil
+}
+
+func (c *UDP) WriteBlockTo(b *utils.Block, addr *net.UDPAddr) error {
+	n, err := c.conn.WriteToUDP(b.Bytes(), addr)
+	if err != nil {
+		return logex.Trace(err)
+	}
+	if n != b.Length {
 		return logex.Trace(ErrShortWritten)
 	}
 	return nil

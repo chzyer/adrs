@@ -31,7 +31,7 @@ func main() {
 	}
 
 	pool := utils.NewBlockPool()
-	un, err := uninet.NewUniNet(host, pool)
+	un, err := uninet.NewUniNet(host)
 	if err != nil {
 		logex.Fatal(err)
 	}
@@ -46,5 +46,5 @@ func main() {
 	if err != nil {
 		logex.Fatal(err)
 	}
-	wm.Serve()
+	wm.ServeAll()
 }

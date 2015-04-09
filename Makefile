@@ -5,5 +5,10 @@ all:
 	go install ./...
 
 test:
-	go install ${PREFIX}/main/adrs-test
-	go install ${PREFIX}/main/adrs-udp
+	go test ./...
+
+cover:
+	go test ./... -cover
+
+cover-func:
+	./goverall.sh func

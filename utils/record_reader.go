@@ -13,13 +13,17 @@ var (
 
 type RecordReader struct {
 	readed     int
-	underlying []byte
+	underlying *Block
 }
 
-func NewRecordReader(data []byte) *RecordReader {
+func NewRecordReader(b *Block) *RecordReader {
 	return &RecordReader{
-		underlying: data,
+		underlying: b,
 	}
+}
+
+func (r *RecordReader) Block() *Block {
+	return r.underlying
 }
 
 func (r *RecordReader) ReadN(b []byte, n int) error {
@@ -34,7 +38,7 @@ func (r *RecordReader) ReadN(b []byte, n int) error {
 }
 
 func (r *RecordReader) Read(b []byte) (int, error) {
-	n := copy(b, r.underlying[r.readed:])
+	n := copy(b, r.underlying.Bytes()[r.readed:])
 	r.readed += n
 	return n, nil
 }
@@ -44,11 +48,11 @@ func (r *RecordReader) ReadBytes(n int) ([]byte, error) {
 }
 
 func (r *RecordReader) read(i int) ([]byte, error) {
-	if r.readed+i > len(r.underlying) {
+	if r.readed+i > r.underlying.Len() {
 		return nil, logex.Trace(io.EOF)
 	}
 	r.readed += i
-	return r.underlying[r.readed-i : r.readed], nil
+	return r.underlying.Bytes()[r.readed-i : r.readed], nil
 }
 
 func (r *RecordReader) ReadUint8() (uint8, error) {
@@ -85,18 +89,18 @@ func (r *RecordReader) ReadByte() (byte, error) {
 
 func (r *RecordReader) Peek(n int) []byte {
 	ret := make([]byte, n)
-	copy(ret, r.underlying[r.readed:])
+	copy(ret, r.underlying.Bytes()[r.readed:])
 	return ret
 }
 
 func (r *RecordReader) RemainBytes() []byte {
-	ret := make([]byte, len(r.underlying)-r.readed)
-	copy(ret, r.underlying[r.readed:])
+	ret := make([]byte, r.underlying.Len()-r.readed)
+	copy(ret, r.underlying.Bytes()[r.readed:])
 	return ret
 }
 
 func (r *RecordReader) Bytes() []byte {
-	ret := make([]byte, len(r.underlying))
-	copy(ret, r.underlying)
+	ret := make([]byte, r.underlying.Len())
+	copy(ret, r.underlying.Bytes())
 	return ret
 }

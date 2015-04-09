@@ -36,38 +36,34 @@ type Host struct {
 type UniNet struct {
 	RetryTime int
 	host      *Host
-	pool      *utils.BlockPool
 	UDP       *UDP
 }
 
-func NewUniNet(host *Host, pool *utils.BlockPool) (*UniNet, error) {
+func NewUniNet(host *Host) (*UniNet, error) {
 	udp, err := NewUDP(host.UDP)
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
 	u := &UniNet{
 		host: host,
-		pool: pool,
 		UDP:  udp,
 	}
 	return u, nil
 }
 
-func (u *UniNet) ReadBlockUDP() (n int, b []byte, addr *net.UDPAddr, err error) {
-	b = u.pool.Get()
-	n, addr, err = u.UDP.ReadBlock(b)
+func (u *UniNet) ReadBlockUDP(b *utils.Block) (addr *net.UDPAddr, err error) {
+	addr, err = u.UDP.ReadBlock(b)
 	if err != nil {
-		u.pool.Put(b)
-		return 0, nil, nil, logex.Trace(err)
+		return nil, logex.Trace(err)
 	}
 
 	return
 }
 
-func (u *UniNet) WriteBlockUDP(b []byte, addr *net.UDPAddr) (err error) {
+func (u *UniNet) WriteBlockUDP(b *utils.Block, addr *net.UDPAddr) (err error) {
 	i := 0
 	for ; i < u.RetryTime || u.RetryTime == 0; i++ {
-		err = u.UDP.WriteBlock(b, addr)
+		err = u.UDP.WriteBlockTo(b, addr)
 		if err == nil {
 			break
 		}

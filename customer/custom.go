@@ -10,20 +10,18 @@ import (
 
 type Corridor chan *Customer
 type Customer struct {
-	Type      uninet.NetType
-	From      *net.UDPAddr
-	Question  []byte
-	QuestionN int
-	Msg       *dns.DNSMessage
-	Answer    []byte
-	AnswerN   int
+	Type     uninet.NetType
+	From     *net.UDPAddr
+	Question *utils.Block
+	Msg      *dns.DNSMessage
+	Answer   *utils.Block
 }
 
-func (c *Customer) Recycle(p utils.BlockPooler) {
+func (c *Customer) Recycle() {
 	if c.Question != nil {
-		p.Put(c.Question)
+		c.Question.Recycle()
 	}
 	if c.Answer != nil {
-		p.Put(c.Answer)
+		c.Answer.Recycle()
 	}
 }
