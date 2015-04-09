@@ -13,8 +13,7 @@ type Customer struct {
 	Type     uninet.NetType
 	From     *net.UDPAddr
 	Question *utils.Block
-	Msg      *dns.DNSMessage
-	Answer   *utils.Block
+	Answer   *dns.DNSMessage
 }
 
 func (c *Customer) Recycle() {
@@ -22,6 +21,6 @@ func (c *Customer) Recycle() {
 		c.Question.Recycle()
 	}
 	if c.Answer != nil {
-		c.Answer.Recycle()
+		c.Answer.Block().Recycle()
 	}
 }

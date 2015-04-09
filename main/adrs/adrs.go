@@ -5,6 +5,7 @@ import (
 
 	"github.com/chzyer/adrs/customer"
 	"github.com/chzyer/adrs/guard"
+	"github.com/chzyer/adrs/mailman"
 	"github.com/chzyer/adrs/uninet"
 	"github.com/chzyer/adrs/utils"
 	"github.com/chzyer/adrs/wiseman"
@@ -29,8 +30,9 @@ func main() {
 	host := &uninet.Host{
 		UDP: args.Listen,
 	}
-
 	pool := utils.NewBlockPool()
+	mailPool := mailman.NewMailPool()
+
 	un, err := uninet.NewUniNet(host)
 	if err != nil {
 		logex.Fatal(err)
@@ -42,7 +44,7 @@ func main() {
 	}
 	g.Start()
 
-	wm, err := wiseman.NewWiseMan(wayIn, wayOut)
+	wm, err := wiseman.NewWiseMan(wayIn, wayOut, mailPool)
 	if err != nil {
 		logex.Fatal(err)
 	}

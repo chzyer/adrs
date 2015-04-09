@@ -16,7 +16,7 @@ func GetMailBox(host string) (*MailBox, error) {
 
 type MailBox struct {
 	net      *uninet.UniDial
-	MailChan chan *Mail
+	mailChan chan *Mail
 }
 
 func NewMailBox(host *uninet.DialAddr) (*MailBox, error) {
@@ -26,22 +26,29 @@ func NewMailBox(host *uninet.DialAddr) (*MailBox, error) {
 	}
 	m := &MailBox{
 		net:      n,
-		MailChan: make(chan *Mail, MailBoxSize),
+		mailChan: make(chan *Mail, MailBoxSize),
 	}
 	return m, nil
 }
 
-func (mb *MailBox) Working() {
+func (mb *MailBox) reader() {
+}
+
+func (mb *MailBox) writer() {
 	var err error
-	for mail := range mb.MailChan {
+	for mail := range mb.mailChan {
 		err = mb.net.WriteBlockUDP(mail.Question.Block())
 		if err != nil {
-
+			logex.Error(err)
 		}
 	}
 }
 
 func (mb *MailBox) DeliverAndWaitingForReply(m *Mail) error {
-
+	if m.To == nil {
+		return logex.NewTraceError("mail missing to")
+	}
+	mb.mailChan <- m
+	m.WaitForReply()
 	return nil
 }

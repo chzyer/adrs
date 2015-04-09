@@ -12,12 +12,14 @@ type WiseMan struct {
 	frontDoor customer.Corridor
 	backDoor  customer.Corridor
 	mailMan   *mailman.MailMan
+	mailPool  *mailman.MailPool
 }
 
-func NewWiseMan(frontDoor, backDoor customer.Corridor) (*WiseMan, error) {
+func NewWiseMan(frontDoor, backDoor customer.Corridor, mailPool *mailman.MailPool) (*WiseMan, error) {
 	w := &WiseMan{
 		frontDoor: frontDoor,
 		backDoor:  backDoor,
+		mailPool:  mailPool,
 	}
 	return w, nil
 }
@@ -26,10 +28,11 @@ func (w *WiseMan) ServeAll() {
 	var customer *customer.Customer
 	for {
 		customer = <-w.frontDoor
-		err := w.Serve(customer)
+		err := w.serve(customer)
 		if err != nil {
 			// oops!, the wise man is passed out!
 			logex.Error(err)
+			customer.Recycle()
 			continue
 		}
 		// say goodbye
@@ -37,35 +40,46 @@ func (w *WiseMan) ServeAll() {
 	}
 }
 
-func (w *WiseMan) Serve(c *customer.Customer) error {
+func (w *WiseMan) serve(c *customer.Customer) error {
 	r := utils.NewRecordReader(c.Question)
 	msg, err := dns.NewDNSMessage(r)
 	if err != nil {
-		c.Question.Recycle()
 		return logex.Trace(err)
 	}
-	c.Msg = msg
 	// looking up the wikis.
 	// ask others
 
-	mail := w.writeMail(c)
+	// we don't know where to send yet
+	mail := w.writeMail(c, msg)
+
+	// but don't worry, my mail man know
 	if err := w.mailMan.SendMailAndGotReply(mail); err != nil {
-		c.Question.Recycle()
 		return logex.Trace(err)
 	}
 
-	msg, err = w.readMail(mail)
+	// write to wiki in case someone ask the same question
+
+	msg, err = w.readMailAndDestory(mail)
 	if err != nil {
 		return logex.Trace(err)
 	}
-	c.Answer = msg.Block()
+	c.Answer = msg
 	return nil
 }
 
-func (w *WiseMan) writeMail(c *customer.Customer) *mailman.Mail {
-	return nil
+func (w *WiseMan) writeMail(c *customer.Customer, msg *dns.DNSMessage) *mailman.Mail {
+	mail := w.mailPool.Get()
+	mail.From = c.From
+	mail.Question = msg
+	return mail
 }
 
-func (w *WiseMan) readMail(m *mailman.Mail) (*dns.DNSMessage, error) {
-	return nil, nil
+func (w *WiseMan) readMailAndDestory(m *mailman.Mail) (*dns.DNSMessage, error) {
+	msg, err := dns.NewDNSMessage(utils.NewRecordReader(m.Answer))
+	w.mailPool.Put(m)
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+
+	return msg, nil
 }

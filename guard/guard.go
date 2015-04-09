@@ -47,7 +47,7 @@ func (g *Guard) waitingCustomer() (*customer.Customer, error) {
 func (g *Guard) seeingOffCustomer(c *customer.Customer) (err error) {
 	switch c.Type {
 	case uninet.NET_UDP:
-		err = g.net.WriteBlockUDP(c.Answer, c.From)
+		err = g.net.WriteBlockUDP(c.Answer.Block(), c.From)
 		if err != nil {
 			logex.Trace(err)
 		}
