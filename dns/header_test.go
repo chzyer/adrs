@@ -52,7 +52,7 @@ var testHeader = []headerMatch{
 }
 
 func stringToReader(s string) *utils.RecordReader {
-	return utils.NewRecordReader(byteToBlock(stringToByte(s)))
+	return utils.NewRecordReader(utils.NewBlockWithByte(stringToByte(s)))
 }
 
 func stringToByte(s string) []byte {
@@ -72,25 +72,34 @@ func testGetHeader(i int) headerMatch {
 	return h
 }
 
+func TestPeek(t *testing.T) {
+	block := utils.NewBlockWithByte([]byte{1})
+	if PeekHeaderID(block) != 0 {
+		t.Fatal("excepting error")
+	}
+}
+
 func TestHeader(t *testing.T) {
 	for i := 0; i < len(testHeader); i++ {
 		header := testGetHeader(i)
-		h, err := NewDNSHeader(utils.NewRecordReader(byteToBlock(header.data)))
+		block := utils.NewBlockWithByte(header.data)
+
+		h, err := NewDNSHeader(utils.NewRecordReader(block))
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		if h.ID != PeekHeaderID(block) {
+			t.Fatal("peek not except")
+		}
+
+		if h.Equal(nil) {
+			t.Fatal("result not except")
+		}
 		if !h.Equal(&header.DNSHeader) {
 			logex.Pretty(h, header)
 			t.Fatal("parse fail")
 		}
 	}
 
-}
-
-func byteToBlock(b []byte) *utils.Block {
-	return &utils.Block{
-		All:    b,
-		Length: len(b),
-	}
 }
