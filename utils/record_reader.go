@@ -27,10 +27,10 @@ func (r *RecordReader) Block() *Block {
 }
 
 func (r *RecordReader) ReadN(b []byte, n int) error {
-	read, err := r.Read(b[:n])
-	if err != nil {
-		return logex.Trace(err)
+	if len(b) < n {
+		return logex.NewError("n large than bytes")
 	}
+	read, _ := r.Read(b[:n])
 	if read != n {
 		return logex.Trace(ErrShortRead)
 	}

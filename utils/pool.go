@@ -16,6 +16,13 @@ type Block struct {
 	recycled bool
 }
 
+func NewBlockWithByte(b []byte) *Block {
+	return &Block{
+		All:    b,
+		Length: len(b),
+	}
+}
+
 func NewBlock(pool *BlockPool) *Block {
 	b := &Block{
 		All:      make([]byte, POOLSIZE),
@@ -36,6 +43,10 @@ func (b *Block) Recycle() {
 	if b.recycled {
 		return
 	}
+	if b.pool == nil {
+		return
+	}
+
 	logex.Debug(unsafe.Pointer(b), "recycled!")
 	b.pool.Put(b)
 	b.recycled = true
