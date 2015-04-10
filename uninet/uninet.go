@@ -28,9 +28,9 @@ const (
 )
 
 type Host struct {
-	UDP  string
-	TCP  string
-	HTTP string
+	UDP  *URL
+	TCP  *URL
+	HTTP *URL
 }
 
 type UniNet struct {
@@ -52,7 +52,7 @@ func NewUniNet(host *Host) (*UniNet, error) {
 }
 
 func (u *UniNet) ReadBlockUDP(b *utils.Block) (addr *net.UDPAddr, err error) {
-	addr, err = u.UDP.ReadBlock(b)
+	addr, err = u.UDP.ReadBlockFrom(b)
 	if err != nil {
 		return nil, logex.Trace(err)
 	}

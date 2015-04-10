@@ -10,25 +10,23 @@ import (
 
 type Mail struct {
 	From     *net.UDPAddr
-	To       *net.UDPAddr
 	Question *dns.DNSMessage
 	Answer   *utils.Block
-	reply    chan struct{}
+	reply    chan *utils.Block
 }
 
 func (m *Mail) Init() {
 	m.From = nil
-	m.To = nil
 	m.Question = nil
 	m.Answer = nil
 }
 
-func (m *Mail) Reply() {
-	m.reply <- struct{}{}
+func (m *Mail) Reply(b *utils.Block) {
+	m.reply <- b
 }
 
 func (m *Mail) WaitForReply() {
-	<-m.reply
+	m.Answer = <-m.reply
 }
 
 type MailPool struct {
@@ -45,7 +43,7 @@ func NewMailPool() *MailPool {
 
 func (m *MailPool) newMail() interface{} {
 	return &Mail{
-		reply: make(chan struct{}),
+		reply: make(chan *utils.Block),
 	}
 }
 

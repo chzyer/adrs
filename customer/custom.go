@@ -16,7 +16,7 @@ type Customer struct {
 	Answer   *dns.DNSMessage
 }
 
-func (c *Customer) Recycle() {
+func (c *Customer) LetItGo() {
 	if c.Question != nil {
 		c.Question.Recycle()
 	}

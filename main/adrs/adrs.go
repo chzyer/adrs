@@ -18,17 +18,21 @@ type Flag struct {
 
 func NewFlag() *Flag {
 	f := new(Flag)
-	flag.StringVar(&f.Listen, "-l", ":53", "listen udp")
+	flag.StringVar(&f.Listen, "-l", "udp://:53", "listen udp")
 	flag.Parse()
 	return f
 }
 
 func main() {
 	args := NewFlag()
-	wayIn := make(customer.Corridor)
-	wayOut := make(customer.Corridor)
+	frontCorridor := make(customer.Corridor)
+	backCorridor := make(customer.Corridor)
+	listenURL, err := uninet.ParseURL(args.Listen)
+	if err != nil {
+		logex.Fatal(err)
+	}
 	host := &uninet.Host{
-		UDP: args.Listen,
+		UDP: listenURL,
 	}
 	pool := utils.NewBlockPool()
 	mailPool := mailman.NewMailPool()
@@ -38,15 +42,18 @@ func main() {
 		logex.Fatal(err)
 	}
 
-	g, err := guard.NewGuard(wayIn, wayOut, un, pool)
+	g, err := guard.NewGuard(frontCorridor, backCorridor, un, pool)
 	if err != nil {
 		logex.Fatal(err)
 	}
-	g.Start()
 
-	wm, err := wiseman.NewWiseMan(wayIn, wayOut, mailPool)
+	mailMan := mailman.NewMailMan(pool)
+
+	wm, err := wiseman.NewWiseMan(frontCorridor, backCorridor, mailMan, mailPool)
 	if err != nil {
 		logex.Fatal(err)
 	}
+
+	g.Start()
 	wm.ServeAll()
 }

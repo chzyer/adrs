@@ -15,11 +15,12 @@ type WiseMan struct {
 	mailPool  *mailman.MailPool
 }
 
-func NewWiseMan(frontDoor, backDoor customer.Corridor, mailPool *mailman.MailPool) (*WiseMan, error) {
+func NewWiseMan(frontDoor, backDoor customer.Corridor, mailMan *mailman.MailMan, mailPool *mailman.MailPool) (*WiseMan, error) {
 	w := &WiseMan{
 		frontDoor: frontDoor,
 		backDoor:  backDoor,
 		mailPool:  mailPool,
+		mailMan:   mailMan,
 	}
 	return w, nil
 }
@@ -32,7 +33,7 @@ func (w *WiseMan) ServeAll() {
 		if err != nil {
 			// oops!, the wise man is passed out!
 			logex.Error(err)
-			customer.Recycle()
+			customer.LetItGo()
 			continue
 		}
 		// say goodbye
@@ -55,6 +56,10 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 	// but don't worry, my mail man know
 	if err := w.mailMan.SendMailAndGotReply(mail); err != nil {
 		return logex.Trace(err)
+	}
+
+	if mail.Answer == nil {
+		return logex.NewError("oops!")
 	}
 
 	// write to wiki in case someone ask the same question

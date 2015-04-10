@@ -55,7 +55,7 @@ func (g *Guard) seeingOffCustomer(c *customer.Customer) (err error) {
 		err = logex.NewError("type not supported yet!", c)
 	}
 
-	c.Recycle()
+	c.LetItGo()
 	return
 }
 

@@ -34,6 +34,10 @@ func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
 	return m, nil
 }
 
+func (m *DNSMessage) Id() uint16 {
+	return m.Header.ID
+}
+
 func (m *DNSMessage) Block() *utils.Block {
 	return m.reader.Block()
 }
