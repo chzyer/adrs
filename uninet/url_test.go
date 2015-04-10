@@ -22,6 +22,8 @@ func TestURL(t *testing.T) {
 		{"ftp://localhost", "", "", true},
 		{"udp:///hello", "", "", true},
 		{"ud-p:///hello", "", "", true},
+		{"udp://:53", ":53", "udp", false},
+		{":53", "", "", true},
 	}
 	for _, us := range urls {
 		u, err := ParseURL(us.Source)
@@ -31,11 +33,12 @@ func TestURL(t *testing.T) {
 		} else if us.IsError {
 			continue
 		} else if err != nil {
+			logex.Error(err)
 			t.Fatal(err)
 		}
 
 		if u.Host() != us.Host || u.Network() != us.Network {
-			logex.Pretty(u.n)
+			logex.Pretty(u.n, us.Host)
 			t.Fatal("result not except")
 		}
 	}
