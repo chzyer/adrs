@@ -21,9 +21,13 @@ func ParseURL(u string) (*URL, error) {
 		n: u_,
 	}
 
-	if u_.Host == "" && u_.Path != "" {
+	if u_.Host == "" && u_.Path != "" && !strings.HasPrefix(u_.Path, "/") {
 		u_.Host = u_.Path
 		u_.Path = ""
+	}
+
+	if u_.Host == "" {
+		return nil, logex.NewError("missing host")
 	}
 
 	switch url.Network() {

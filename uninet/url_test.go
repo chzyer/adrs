@@ -20,11 +20,14 @@ func TestURL(t *testing.T) {
 		{"localhost", "localhost:53", "udp", false},
 		{"http://localhost", "localhost:80", "http", false},
 		{"ftp://localhost", "", "", true},
+		{"udp:///hello", "", "", true},
+		{"ud-p:///hello", "", "", true},
 	}
 	for _, us := range urls {
 		u, err := ParseURL(us.Source)
 		if us.IsError && err == nil {
-			t.Fatal("result not except")
+			logex.Pretty(u.n)
+			t.Fatal("excepting error")
 		} else if us.IsError {
 			continue
 		} else if err != nil {
