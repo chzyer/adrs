@@ -26,7 +26,8 @@ func NewUniDial(addr *DialAddr) (*UniDial, error) {
 	}
 
 	ud := &UniDial{
-		UDP: udp,
+		Addr: addr,
+		UDP:  udp,
 	}
 	return ud, nil
 }
