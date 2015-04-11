@@ -42,11 +42,6 @@ func (m *MailMan) checkingOutgoingBox() {
 
 		logex.Info("we found a mailbox")
 
-		err = mb.DeliverAndWaitingForReply(envelope.Mail)
-		if err != nil {
-			logex.Error(err)
-			continue
-		}
-		m.incomingBox <- envelope
+		mb.Deliver(envelope, m.incomingBox)
 	}
 }

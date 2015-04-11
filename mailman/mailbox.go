@@ -11,7 +11,7 @@ import (
 
 var (
 	MailBoxSize   = 10
-	gMailBox      = make(map[*uninet.DialAddr]*MailBox)
+	gMailBox      = make(map[string]*MailBox)
 	gMailBoxMutex sync.Mutex
 )
 
@@ -19,7 +19,7 @@ func GetMailBox(addr *uninet.DialAddr, pool *utils.BlockPool) (*MailBox, error) 
 	gMailBoxMutex.Lock()
 	defer gMailBoxMutex.Unlock()
 
-	mb, ok := gMailBox[addr]
+	mb, ok := gMailBox[addr.String()]
 	if ok {
 		return mb, nil
 	}
@@ -28,15 +28,20 @@ func GetMailBox(addr *uninet.DialAddr, pool *utils.BlockPool) (*MailBox, error) 
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
-	gMailBox[addr] = mb
+	gMailBox[addr.String()] = mb
 	return mb, nil
+}
+
+type EnvelopePackage struct {
+	envelope *Envelope
+	reply    chan *Envelope
 }
 
 type MailBox struct {
 	net       *uninet.UniDial
-	mailChan  chan *Mail
+	pkgChan   chan *EnvelopePackage
 	blockPool *utils.BlockPool
-	box       map[uint16]*Mail
+	box       map[uint16]*EnvelopePackage
 	boxLock   sync.Mutex
 }
 
@@ -47,9 +52,9 @@ func NewMailBox(host *uninet.DialAddr, pool *utils.BlockPool) (*MailBox, error) 
 	}
 	mb := &MailBox{
 		net:       n,
-		mailChan:  make(chan *Mail, MailBoxSize),
 		blockPool: pool,
-		box:       make(map[uint16]*Mail),
+		pkgChan:   make(chan *EnvelopePackage, MailBoxSize),
+		box:       make(map[uint16]*EnvelopePackage),
 	}
 
 	go mb.writer()
@@ -61,7 +66,7 @@ func (mb *MailBox) reader() {
 	var (
 		err   error
 		block = mb.blockPool.Get()
-		mail  *Mail
+		pkg   *EnvelopePackage
 		id    uint16
 		ok    bool
 	)
@@ -74,7 +79,7 @@ func (mb *MailBox) reader() {
 
 		id = dns.PeekHeaderID(block)
 		mb.boxLock.Lock()
-		mail, ok = mb.box[id]
+		pkg, ok = mb.box[id]
 		if ok {
 			delete(mb.box, id)
 		}
@@ -85,34 +90,33 @@ func (mb *MailBox) reader() {
 			continue
 		}
 
-		mail.Reply(block)
+		pkg.envelope.Mail.Answer = block
+		pkg.reply <- pkg.envelope
 		block = mb.blockPool.Get()
 	}
 }
 
 func (mb *MailBox) writer() {
-	var err error
-	for mail := range mb.mailChan {
+	var (
+		err  error
+		mail *Mail
+	)
+	for pkg := range mb.pkgChan {
+		mail = pkg.envelope.Mail
 		err = mb.net.WriteBlockUDP(mail.Question.Block())
 		if err != nil {
 			logex.Error(err)
 			continue
 		}
 		mb.boxLock.Lock()
-		mb.box[mail.Question.Id()] = mail
+		mb.box[mail.Question.Id()] = pkg
 		mb.boxLock.Unlock()
 	}
 }
 
-func (mb *MailBox) DeliverAndWaitingForReply(m *Mail) error {
-	// timeout
-	mb.mailChan <- m
-	err := m.WaitForReply()
-	if err != nil {
-		return logex.Trace(err)
+func (mb *MailBox) Deliver(envelope *Envelope, reply chan *Envelope) {
+	mb.pkgChan <- &EnvelopePackage{
+		envelope: envelope,
+		reply:    reply,
 	}
-	if m.Answer == nil {
-		return logex.NewError("not got answer")
-	}
-	return nil
 }

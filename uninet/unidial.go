@@ -9,6 +9,10 @@ type DialAddr struct {
 	UDP *UdpURL
 }
 
+func (d *DialAddr) String() string {
+	return d.UDP.Network() + "://" + d.UDP.Host()
+}
+
 type UniDial struct {
 	Addr      *DialAddr
 	UDP       *UDPDialer

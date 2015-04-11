@@ -2,13 +2,11 @@ package mailman
 
 import (
 	"sync"
-	"time"
 
 	"github.com/chzyer/adrs/customer"
 	"github.com/chzyer/adrs/dns"
 	"github.com/chzyer/adrs/uninet"
 	"github.com/chzyer/adrs/utils"
-	"gopkg.in/logex.v1"
 )
 
 type Envelope struct {
@@ -20,26 +18,12 @@ type Mail struct {
 	From     uninet.Session
 	Question *dns.DNSMessage
 	Answer   *utils.Block
-	reply    chan *utils.Block
 }
 
 func (m *Mail) Init() {
 	m.From = nil
 	m.Question = nil
 	m.Answer = nil
-}
-
-func (m *Mail) Reply(b *utils.Block) {
-	m.reply <- b
-}
-
-func (m *Mail) WaitForReply() error {
-	select {
-	case m.Answer = <-m.reply:
-		return nil
-	case <-time.After(2 * time.Second):
-		return logex.NewTraceError("timeout")
-	}
 }
 
 type MailPool struct {
@@ -55,9 +39,7 @@ func NewMailPool() *MailPool {
 }
 
 func (m *MailPool) newMail() interface{} {
-	return &Mail{
-		reply: make(chan *utils.Block),
-	}
+	return &Mail{}
 }
 
 func (m *MailPool) Get() *Mail {
