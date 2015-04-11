@@ -90,7 +90,7 @@ func (mb *MailBox) reader() {
 			continue
 		}
 
-		pkg.envelope.Mail.Answer = block
+		pkg.envelope.Mail.Reply = block
 		pkg.reply <- pkg.envelope
 		block = mb.blockPool.Get()
 	}
@@ -103,13 +103,13 @@ func (mb *MailBox) writer() {
 	)
 	for pkg := range mb.pkgChan {
 		mail = pkg.envelope.Mail
-		err = mb.net.WriteBlockUDP(mail.Question.Block())
+		err = mb.net.WriteBlockUDP(mail.Content.Block())
 		if err != nil {
 			logex.Error(err)
 			continue
 		}
 		mb.boxLock.Lock()
-		mb.box[mail.Question.Id()] = pkg
+		mb.box[mail.Content.Id()] = pkg
 		mb.boxLock.Unlock()
 	}
 }

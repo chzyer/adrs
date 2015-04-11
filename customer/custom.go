@@ -13,6 +13,11 @@ type Customer struct {
 	Msg     *dns.DNSMessage
 }
 
+func (c *Customer) SetRaw(b *utils.Block) {
+	c.Raw.Recycle()
+	c.Raw = b
+}
+
 func (c *Customer) LetItGo() {
 	if c.Raw != nil {
 		c.Raw.Recycle()

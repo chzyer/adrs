@@ -6,6 +6,12 @@ import (
 	"gopkg.in/logex.v1"
 )
 
+func MakeBoxes() (incomingBox, outgoingBox chan *Envelope) {
+	incomingBox = make(chan *Envelope, 10)
+	outgoingBox = make(chan *Envelope, 10)
+	return incomingBox, outgoingBox
+}
+
 // determine where the mail to go
 type MailMan struct {
 	pool        *utils.BlockPool
@@ -13,21 +19,17 @@ type MailMan struct {
 	outgoingBox chan *Envelope
 }
 
-func NewMailMan(pool *utils.BlockPool) *MailMan {
+func NewMailMan(pool *utils.BlockPool, incomingBox, outgoingBox chan *Envelope) *MailMan {
 	mm := &MailMan{
 		pool:        pool,
-		incomingBox: make(chan *Envelope, 10),
-		outgoingBox: make(chan *Envelope, 10),
+		incomingBox: incomingBox,
+		outgoingBox: outgoingBox,
 	}
-	go mm.checkingOutgoingBox()
+
 	return mm
 }
 
-func (m *MailMan) GetBoxes() (incomingBox, outgoingBox chan *Envelope) {
-	return m.incomingBox, m.outgoingBox
-}
-
-func (m *MailMan) checkingOutgoingBox() {
+func (m *MailMan) CheckingOutgoingBox() {
 	for {
 		envelope := <-m.outgoingBox
 		toURL, _ := uninet.ParseURL("udp://8.8.8.8")

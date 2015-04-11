@@ -1,6 +1,10 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/chzyer/adrs/customer"
 	"github.com/chzyer/adrs/guard"
 	"github.com/chzyer/adrs/mailman"
@@ -11,6 +15,11 @@ import (
 )
 
 func main() {
+	var (
+		mailManNum = 1
+		wiseManNum = 1
+	)
+
 	frontCorridor := make(customer.Corridor)
 	backCorridor := make(customer.Corridor)
 	udpListen, err := uninet.ParseURL("udp://:53")
@@ -23,26 +32,37 @@ func main() {
 	}
 
 	pool := utils.NewBlockPool()
-	mailPool := mailman.NewMailPool()
+	incomingBox, outgoingBox := mailman.MakeBoxes()
 
 	un, err := uninet.NewUniListener(tcpListen.(*uninet.TcpURL), udpListen.(*uninet.UdpURL), pool)
 	if err != nil {
 		logex.Fatal(err)
 	}
 
+	// fool guard
 	g, err := guard.NewGuard(frontCorridor, backCorridor, un)
 	if err != nil {
 		logex.Fatal(err)
 	}
+	g.Start()
 
-	mailMan := mailman.NewMailMan(pool)
-	incomingBox, outgoingBox := mailMan.GetBoxes()
-
-	wm, err := wiseman.NewWiseMan(frontCorridor, backCorridor, mailPool, incomingBox, outgoingBox)
-	if err != nil {
-		logex.Fatal(err)
+	// wiseman
+	for i := 0; i < wiseManNum; i++ {
+		wm, err := wiseman.NewWiseMan(frontCorridor, backCorridor, incomingBox, outgoingBox)
+		if err != nil {
+			logex.Fatal(err)
+		}
+		go wm.ServeAll()
 	}
 
-	g.Start()
-	wm.ServeAll()
+	// mailman
+	for i := 0; i < mailManNum; i++ {
+		mailMan := mailman.NewMailMan(pool, incomingBox, outgoingBox)
+		go mailMan.CheckingOutgoingBox()
+	}
+
+	// waiting for signal
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGHUP)
+	<-c
 }

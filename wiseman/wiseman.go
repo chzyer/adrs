@@ -12,16 +12,14 @@ type WiseMan struct {
 	frontDoor   customer.Corridor
 	backDoor    customer.Corridor
 	mailMan     *mailman.MailMan
-	mailPool    *mailman.MailPool
 	incomingBox chan *mailman.Envelope
 	outgoingBox chan *mailman.Envelope
 }
 
-func NewWiseMan(frontDoor, backDoor customer.Corridor, mailPool *mailman.MailPool, incomingBox, outgoingBox chan *mailman.Envelope) (*WiseMan, error) {
+func NewWiseMan(frontDoor, backDoor customer.Corridor, incomingBox, outgoingBox chan *mailman.Envelope) (*WiseMan, error) {
 	w := &WiseMan{
 		frontDoor:   frontDoor,
 		backDoor:    backDoor,
-		mailPool:    mailPool,
 		incomingBox: incomingBox,
 		outgoingBox: outgoingBox,
 	}
@@ -83,14 +81,14 @@ func (w *WiseMan) sendMail(mail *mailman.Mail, c *customer.Customer) {
 }
 
 func (w *WiseMan) receiveMail(e *mailman.Envelope) error {
-	if e.Mail.Answer == nil {
+	if e.Mail.Reply == nil {
 		return logex.NewError("oops!")
 	}
 
 	logex.Info("we got a answer from remote")
 
 	// write to wiki in case someone ask the same question
-	e.Customer.Raw = e.Mail.Answer
+	e.Customer.SetRaw(e.Mail.Reply)
 	msg, err := w.readMailAndDestory(e.Mail)
 	if err != nil {
 		return logex.Trace(err)
@@ -100,18 +98,16 @@ func (w *WiseMan) receiveMail(e *mailman.Envelope) error {
 }
 
 func (w *WiseMan) writeMail(c *customer.Customer, msg *dns.DNSMessage) *mailman.Mail {
-	mail := w.mailPool.Get()
-	mail.From = c.Session
-	mail.Question = msg
-	return mail
+	return &mailman.Mail{
+		From:    c.Session,
+		Content: msg,
+	}
 }
 
 func (w *WiseMan) readMailAndDestory(m *mailman.Mail) (*dns.DNSMessage, error) {
-	msg, err := dns.NewDNSMessage(utils.NewRecordReader(m.Answer))
-	w.mailPool.Put(m)
+	msg, err := dns.NewDNSMessage(utils.NewRecordReader(m.Reply))
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
-
 	return msg, nil
 }
