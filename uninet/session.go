@@ -19,6 +19,8 @@ func (n *NetType) String() string {
 }
 
 const (
+	NET_NULL = NetType(-1)
+
 	NET_UDP NetType = iota
 	NET_TCP
 	NET_HTTP

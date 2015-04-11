@@ -35,10 +35,9 @@ func (b *BaseURL) Host() string {
 	return b.host
 }
 
-func ParseURL(u string) (URLer, error) {
+func ParseURLEx(u string, netType NetType) (URLer, error) {
 	var (
-		netType NetType
-		host    string
+		host string
 	)
 
 	u_, err := url.Parse(u)
@@ -56,15 +55,17 @@ func ParseURL(u string) (URLer, error) {
 	}
 
 	// netType
-	switch u_.Scheme {
-	case "", "udp":
-		netType = NET_UDP
-	case "tcp":
-		netType = NET_TCP
-	case "http":
-		netType = NET_HTTP
-	default:
-		return nil, logex.NewError("unsupported protocol")
+	if netType == NET_NULL {
+		switch u_.Scheme {
+		case "", "udp":
+			netType = NET_UDP
+		case "tcp":
+			netType = NET_TCP
+		case "http":
+			netType = NET_HTTP
+		default:
+			return nil, logex.NewError("unsupported protocol")
+		}
 	}
 
 	if !strings.Contains(host, ":") {
@@ -88,4 +89,9 @@ func ParseURL(u string) (URLer, error) {
 	}
 
 	return nil, logex.NewTraceError("unknown error")
+
+}
+
+func ParseURL(u string) (URLer, error) {
+	return ParseURLEx(u, NET_NULL)
 }
