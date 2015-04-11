@@ -12,6 +12,12 @@ var (
 	ErrShortRead = logex.NewError("short read")
 )
 
+type ListenConfig struct {
+	Tcp  *TcpURL
+	Udp  *UdpURL
+	Http *HttpURL
+}
+
 type blockSession struct {
 	Block   *utils.Block
 	Session Session
@@ -27,7 +33,7 @@ type UniListener struct {
 	blockSession chan *blockSession
 }
 
-func NewUniListener(tcpUrl *TcpURL, udpUrl *UdpURL, pool *utils.BlockPool) (*UniListener, error) {
+func NewUniListener(lnConfig *ListenConfig, pool *utils.BlockPool) (*UniListener, error) {
 	var (
 		udp *UDPListener
 		tcp *TCPListener
@@ -39,8 +45,8 @@ func NewUniListener(tcpUrl *TcpURL, udpUrl *UdpURL, pool *utils.BlockPool) (*Uni
 		blockSession: make(chan *blockSession),
 	}
 
-	if udpUrl != nil {
-		udp, err = ListenUDP(udpUrl)
+	if lnConfig.Udp != nil {
+		udp, err = ListenUDP(lnConfig.Udp)
 		if err != nil {
 			return nil, logex.Trace(err)
 		}
@@ -48,8 +54,8 @@ func NewUniListener(tcpUrl *TcpURL, udpUrl *UdpURL, pool *utils.BlockPool) (*Uni
 		go u.readingUDP()
 	}
 
-	if tcpUrl != nil {
-		tcp, err = ListenTcp(tcpUrl)
+	if lnConfig.Tcp != nil {
+		tcp, err = ListenTcp(lnConfig.Tcp)
 		if err != nil {
 			return nil, logex.Trace(err)
 		}

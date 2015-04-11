@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"flag"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/chzyer/adrs/conf"
 	"github.com/chzyer/adrs/customer"
 	"github.com/chzyer/adrs/guard"
 	"github.com/chzyer/adrs/mailman"
@@ -14,7 +18,28 @@ import (
 	"gopkg.in/logex.v1"
 )
 
+func GetConfig() (*conf.Config, error) {
+	confPath := ""
+	flag.StringVar(&confPath, "c", "adrs.conf", "conf path")
+	flag.Parse()
+
+	data, err := ioutil.ReadFile(confPath)
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+	config, err := conf.NewConfig(bytes.NewReader(data))
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+	return config, nil
+}
+
 func main() {
+	config, err := GetConfig()
+	if err != nil {
+		logex.Fatal(err)
+	}
+
 	var (
 		mailManNum = 1
 		wiseManNum = 1
@@ -22,19 +47,11 @@ func main() {
 
 	frontCorridor := make(customer.Corridor)
 	backCorridor := make(customer.Corridor)
-	udpListen, err := uninet.ParseURL("udp://:53")
-	if err != nil {
-		logex.Fatal(err)
-	}
-	tcpListen, err := uninet.ParseURL("tcp://:53")
-	if err != nil {
-		logex.Fatal(err)
-	}
 
 	pool := utils.NewBlockPool()
 	incomingBox, outgoingBox := mailman.MakeBoxes()
 
-	un, err := uninet.NewUniListener(tcpListen.(*uninet.TcpURL), udpListen.(*uninet.UdpURL), pool)
+	un, err := uninet.NewUniListener(config.Listen, pool)
 	if err != nil {
 		logex.Fatal(err)
 	}

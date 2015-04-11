@@ -14,14 +14,8 @@ type rawConfig struct {
 	Router    map[string][]string
 }
 
-type ListenConfig struct {
-	Tcp  *uninet.TcpURL
-	Udp  *uninet.UdpURL
-	Http *uninet.HttpURL
-}
-
 type Config struct {
-	Listen    *ListenConfig
+	Listen    *uninet.ListenConfig
 	AddrGroup map[string][]uninet.URLer
 	Router    map[string][]uninet.URLer // map[domain] []server
 }
@@ -54,8 +48,8 @@ func ConvRouter(raw map[string][]string, group map[string][]uninet.URLer) (map[s
 	return router, nil
 }
 
-func ConvListenConfig(raw map[string]string) (*ListenConfig, error) {
-	listenConfig := new(ListenConfig)
+func ConvListenConfig(raw map[string]string) (*uninet.ListenConfig, error) {
+	listenConfig := new(uninet.ListenConfig)
 	if tcp := raw["tcp"]; tcp != "" {
 		if tcpUrl, err := uninet.ParseURLEx(tcp, uninet.NET_TCP); err != nil {
 			return nil, logex.Trace(err, "parse listen.tcp")
