@@ -1,8 +1,6 @@
 package main
 
 import (
-	"flag"
-
 	"github.com/chzyer/adrs/customer"
 	"github.com/chzyer/adrs/guard"
 	"github.com/chzyer/adrs/mailman"
@@ -12,37 +10,27 @@ import (
 	"gopkg.in/logex.v1"
 )
 
-type Flag struct {
-	Listen string
-}
-
-func NewFlag() *Flag {
-	f := new(Flag)
-	flag.StringVar(&f.Listen, "-l", "udp://:53", "listen udp")
-	flag.Parse()
-	return f
-}
-
 func main() {
-	args := NewFlag()
 	frontCorridor := make(customer.Corridor)
 	backCorridor := make(customer.Corridor)
-	listenURL, err := uninet.ParseURL(args.Listen)
+	udpListen, err := uninet.ParseURL("udp://:53")
 	if err != nil {
 		logex.Fatal(err)
 	}
-	host := &uninet.Host{
-		UDP: listenURL,
+	tcpListen, err := uninet.ParseURL("tcp://:53")
+	if err != nil {
+		logex.Fatal(err)
 	}
+
 	pool := utils.NewBlockPool()
 	mailPool := mailman.NewMailPool()
 
-	un, err := uninet.NewUniNet(host)
+	un, err := uninet.NewUniListener(tcpListen.(*uninet.TcpURL), udpListen.(*uninet.UdpURL), pool)
 	if err != nil {
 		logex.Fatal(err)
 	}
 
-	g, err := guard.NewGuard(frontCorridor, backCorridor, un, pool)
+	g, err := guard.NewGuard(frontCorridor, backCorridor, un)
 	if err != nil {
 		logex.Fatal(err)
 	}

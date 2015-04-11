@@ -6,17 +6,17 @@ import (
 )
 
 type DialAddr struct {
-	UDP *URL
+	UDP *UdpURL
 }
 
 type UniDial struct {
 	Addr      *DialAddr
-	UDP       *UDP
+	UDP       *UDPDialer
 	RetryTime int
 }
 
 func NewUniDial(addr *DialAddr) (*UniDial, error) {
-	udp, err := NewDialUDP(addr.UDP)
+	udp, err := DialUDP(addr.UDP)
 	if err != nil {
 		return nil, logex.Trace(err)
 	}

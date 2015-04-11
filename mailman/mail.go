@@ -1,15 +1,15 @@
 package mailman
 
 import (
-	"net"
 	"sync"
 
 	"github.com/chzyer/adrs/dns"
+	"github.com/chzyer/adrs/uninet"
 	"github.com/chzyer/adrs/utils"
 )
 
 type Mail struct {
-	From     *net.UDPAddr
+	From     uninet.Session
 	Question *dns.DNSMessage
 	Answer   *utils.Block
 	reply    chan *utils.Block

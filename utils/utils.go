@@ -2,6 +2,11 @@ package utils
 
 import "gopkg.in/logex.v1"
 
+func Uint16To(b uint16) []byte {
+	mask := uint16(1<<8 - 1)
+	return []byte{uint8(b >> 8), uint8(b & mask)}
+}
+
 func ToUint16(data []byte) (ret uint16) {
 	for i := range data {
 		ret <<= 8

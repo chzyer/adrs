@@ -3,21 +3,18 @@ package guard
 import (
 	"github.com/chzyer/adrs/customer"
 	"github.com/chzyer/adrs/uninet"
-	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
 
 type Guard struct {
-	pool      *utils.BlockPool
-	net       *uninet.UniNet
+	ln        *uninet.UniListener
 	frontDoor customer.Corridor
 	backDoor  customer.Corridor
 }
 
-func NewGuard(frontDoor, backDoor customer.Corridor, un *uninet.UniNet, pool *utils.BlockPool) (*Guard, error) {
+func NewGuard(frontDoor, backDoor customer.Corridor, un *uninet.UniListener) (*Guard, error) {
 	g := &Guard{
-		pool:      pool,
-		net:       un,
+		ln:        un,
 		frontDoor: frontDoor,
 		backDoor:  backDoor,
 	}
@@ -30,29 +27,21 @@ func (g *Guard) Start() {
 }
 
 func (g *Guard) waitingCustomer() (*customer.Customer, error) {
-	b := g.pool.Get()
-	addr, err := g.net.ReadBlockUDP(b)
+	block, session, err := g.ln.ReadBlock()
 	if err != nil {
-		b.Recycle()
 		return nil, logex.Trace(err)
 	}
 
 	return &customer.Customer{
-		Type:     uninet.NET_UDP,
-		From:     addr,
-		Question: b,
+		Session: session,
+		Raw:     block,
 	}, nil
 }
 
 func (g *Guard) seeingOffCustomer(c *customer.Customer) (err error) {
-	switch c.Type {
-	case uninet.NET_UDP:
-		err = g.net.WriteBlockUDP(c.Answer.Block(), c.From)
-		if err != nil {
-			logex.Trace(err)
-		}
-	default:
-		err = logex.NewError("type not supported yet!", c)
+	err = g.ln.WriteBlock(c.Raw, c.Session)
+	if err != nil {
+		return logex.Trace(err)
 	}
 
 	c.LetItGo()

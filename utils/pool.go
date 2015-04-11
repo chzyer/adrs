@@ -7,7 +7,7 @@ import (
 	"gopkg.in/logex.v1"
 )
 
-const POOLSIZE = 512
+const BLOCK_CAP = 512
 
 type Block struct {
 	All      []byte
@@ -25,8 +25,8 @@ func NewBlockWithByte(b []byte) *Block {
 
 func NewBlock(pool *BlockPool) *Block {
 	b := &Block{
-		All:      make([]byte, POOLSIZE),
-		Length:   POOLSIZE,
+		All:      make([]byte, BLOCK_CAP),
+		Length:   0,
 		pool:     pool,
 		recycled: false,
 	}
@@ -34,9 +34,15 @@ func NewBlock(pool *BlockPool) *Block {
 }
 
 func (b *Block) Init() {
-	b.Length = POOLSIZE
+	b.Length = 0
 	b.recycled = false
 	logex.Debug(unsafe.Pointer(b), "init!")
+}
+
+func (b *Block) Write(bytes []byte) (int, error) {
+	n := copy(b.All[b.Length:], bytes)
+	b.Length += n
+	return n, nil
 }
 
 func (b *Block) Recycle() {
@@ -57,6 +63,9 @@ func (b *Block) Len() int {
 }
 
 func (b *Block) Bytes() []byte {
+	if b.Length > cap(b.All) {
+		return b.All
+	}
 	return b.All[:b.Length]
 }
 

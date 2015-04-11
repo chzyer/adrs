@@ -7,59 +7,85 @@ import (
 	"gopkg.in/logex.v1"
 )
 
-type URL struct {
-	Type NetType
-	n    *url.URL
+type URLer interface {
+	Network() string
+	Host() string
+	NetType() NetType
 }
 
-func ParseURL(u string) (*URL, error) {
+type BaseURL struct {
+	netType NetType
+	host    string
+}
+type UdpURL struct{ *BaseURL }
+type TcpURL struct{ *BaseURL }
+type HttpURL struct{ *BaseURL }
+
+func NewBaseURL(t NetType, host string) *BaseURL {
+	return &BaseURL{t, host}
+}
+
+func (b *BaseURL) NetType() NetType {
+	return b.netType
+}
+func (b *BaseURL) Network() string {
+	return b.netType.String()
+}
+func (b *BaseURL) Host() string {
+	return b.host
+}
+
+func ParseURL(u string) (URLer, error) {
+	var (
+		netType NetType
+		host    string
+	)
+
 	u_, err := url.Parse(u)
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
-	url := &URL{
-		n: u_,
-	}
 
-	if u_.Host == "" && u_.Path != "" && !strings.HasPrefix(u_.Path, "/") {
-		u_.Host = u_.Path
-		u_.Path = ""
+	// init host
+	host = u_.Host
+	if host == "" && u_.Path != "" && !strings.HasPrefix(u_.Path, "/") {
+		host = u_.Path
 	}
-
-	if u_.Host == "" {
+	if host == "" {
 		return nil, logex.NewError("missing host")
 	}
 
-	switch url.Network() {
-	case "":
-		url.n.Scheme = "udp"
-		fallthrough
-	case "udp":
-		url.Type = NET_UDP
+	// netType
+	switch u_.Scheme {
+	case "", "udp":
+		netType = NET_UDP
 	case "tcp":
-		url.Type = NET_TCP
+		netType = NET_TCP
 	case "http":
-		url.Type = NET_HTTP
+		netType = NET_HTTP
 	default:
 		return nil, logex.NewError("unsupported protocol")
 	}
 
-	if !strings.Contains(u_.Host, ":") {
-		switch url.Type {
+	if !strings.Contains(host, ":") {
+		switch netType {
 		case NET_UDP, NET_TCP:
-			u_.Host = u_.Host + ":53"
+			host = host + ":53"
 		case NET_HTTP:
-			u_.Host = u_.Host + ":80"
+			host = host + ":80"
 		}
 	}
 
-	return url, nil
-}
+	base := NewBaseURL(netType, host)
 
-func (u *URL) Network() string {
-	return u.n.Scheme
-}
+	switch netType {
+	case NET_UDP:
+		return &UdpURL{base}, nil
+	case NET_TCP:
+		return &TcpURL{base}, nil
+	case NET_HTTP:
+		return &HttpURL{base}, nil
+	}
 
-func (u *URL) Host() string {
-	return u.n.Host
+	return nil, logex.NewTraceError("unknown error")
 }

@@ -42,7 +42,7 @@ func (w *WiseMan) ServeAll() {
 }
 
 func (w *WiseMan) serve(c *customer.Customer) error {
-	r := utils.NewRecordReader(c.Question)
+	r := utils.NewRecordReader(c.Raw)
 	msg, err := dns.NewDNSMessage(r)
 	if err != nil {
 		return logex.Trace(err)
@@ -63,18 +63,19 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 	}
 
 	// write to wiki in case someone ask the same question
-
+	c.Raw = mail.Answer
 	msg, err = w.readMailAndDestory(mail)
 	if err != nil {
 		return logex.Trace(err)
 	}
-	c.Answer = msg
+	c.Msg = msg
+
 	return nil
 }
 
 func (w *WiseMan) writeMail(c *customer.Customer, msg *dns.DNSMessage) *mailman.Mail {
 	mail := w.mailPool.Get()
-	mail.From = c.From
+	mail.From = c.Session
 	mail.Question = msg
 	return mail
 }

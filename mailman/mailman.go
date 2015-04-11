@@ -20,7 +20,7 @@ func NewMailMan(pool *utils.BlockPool) *MailMan {
 func (m *MailMan) SendMailAndGotReply(mail *Mail) error {
 	toURL, _ := uninet.ParseURL("udp://8.8.8.8")
 	addr := &uninet.DialAddr{
-		UDP: toURL,
+		UDP: toURL.(*uninet.UdpURL),
 	}
 	mb, err := GetMailBox(addr, m.pool)
 	if err != nil {

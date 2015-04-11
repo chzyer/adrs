@@ -28,7 +28,7 @@ func TestURL(t *testing.T) {
 	for _, us := range urls {
 		u, err := ParseURL(us.Source)
 		if us.IsError && err == nil {
-			logex.Pretty(u.n)
+			logex.Pretty(u)
 			t.Fatal("excepting error")
 		} else if us.IsError {
 			continue
@@ -38,7 +38,7 @@ func TestURL(t *testing.T) {
 		}
 
 		if u.Host() != us.Host || u.Network() != us.Network {
-			logex.Pretty(u.n, us.Host)
+			logex.Pretty(u, us.Host)
 			t.Fatal("result not except")
 		}
 	}

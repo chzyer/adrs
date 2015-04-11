@@ -1,8 +1,6 @@
 package customer
 
 import (
-	"net"
-
 	"github.com/chzyer/adrs/dns"
 	"github.com/chzyer/adrs/uninet"
 	"github.com/chzyer/adrs/utils"
@@ -10,17 +8,16 @@ import (
 
 type Corridor chan *Customer
 type Customer struct {
-	Type     uninet.NetType
-	From     *net.UDPAddr
-	Question *utils.Block
-	Answer   *dns.DNSMessage
+	Session uninet.Session
+	Raw     *utils.Block
+	Msg     *dns.DNSMessage
 }
 
 func (c *Customer) LetItGo() {
-	if c.Question != nil {
-		c.Question.Recycle()
+	if c.Raw != nil {
+		c.Raw.Recycle()
 	}
-	if c.Answer != nil {
-		c.Answer.Block().Recycle()
+	if c.Msg != nil {
+		c.Msg.Block().Recycle()
 	}
 }
