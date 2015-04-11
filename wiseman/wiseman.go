@@ -9,35 +9,51 @@ import (
 )
 
 type WiseMan struct {
-	frontDoor customer.Corridor
-	backDoor  customer.Corridor
-	mailMan   *mailman.MailMan
-	mailPool  *mailman.MailPool
+	frontDoor   customer.Corridor
+	backDoor    customer.Corridor
+	mailMan     *mailman.MailMan
+	mailPool    *mailman.MailPool
+	incomingBox chan *mailman.Envelope
+	outgoingBox chan *mailman.Envelope
 }
 
-func NewWiseMan(frontDoor, backDoor customer.Corridor, mailMan *mailman.MailMan, mailPool *mailman.MailPool) (*WiseMan, error) {
+func NewWiseMan(frontDoor, backDoor customer.Corridor, mailPool *mailman.MailPool, incomingBox, outgoingBox chan *mailman.Envelope) (*WiseMan, error) {
 	w := &WiseMan{
-		frontDoor: frontDoor,
-		backDoor:  backDoor,
-		mailPool:  mailPool,
-		mailMan:   mailMan,
+		frontDoor:   frontDoor,
+		backDoor:    backDoor,
+		mailPool:    mailPool,
+		incomingBox: incomingBox,
+		outgoingBox: outgoingBox,
 	}
 	return w, nil
 }
 
 func (w *WiseMan) ServeAll() {
 	var customer *customer.Customer
+	var envelope *mailman.Envelope
+	var err error
 	for {
-		customer = <-w.frontDoor
-		err := w.serve(customer)
-		if err != nil {
-			// oops!, the wise man is passed out!
-			logex.Error(err)
-			customer.LetItGo()
-			continue
+		select {
+		case envelope = <-w.incomingBox:
+			// new mail is receive
+			err = w.receiveMail(envelope)
+			if err != nil {
+				logex.Error(err)
+				envelope.Customer.LetItGo()
+				continue
+			}
+			// say goodbye
+			w.backDoor <- envelope.Customer
+		case customer = <-w.frontDoor:
+			// new customer is comming
+			err = w.serve(customer)
+			if err != nil {
+				// oops!, the wise man is passed out!
+				logex.Error(err)
+				customer.LetItGo()
+				continue
+			}
 		}
-		// say goodbye
-		w.backDoor <- customer
 	}
 }
 
@@ -47,29 +63,39 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 	if err != nil {
 		return logex.Trace(err)
 	}
+
+	logex.Info("here comes a customer")
 	// looking up the wikis.
 	// ask others
 
 	// we don't know where to send yet
 	mail := w.writeMail(c, msg)
 
-	// but don't worry, my mail man know
-	if err := w.mailMan.SendMailAndGotReply(mail); err != nil {
-		return logex.Trace(err)
-	}
+	logex.Info("sending a mail to others")
 
-	if mail.Answer == nil {
+	// but don't worry, my mail man know
+	w.sendMail(mail, c)
+	return nil
+}
+
+func (w *WiseMan) sendMail(mail *mailman.Mail, c *customer.Customer) {
+	w.outgoingBox <- &mailman.Envelope{mail, c}
+}
+
+func (w *WiseMan) receiveMail(e *mailman.Envelope) error {
+	if e.Mail.Answer == nil {
 		return logex.NewError("oops!")
 	}
 
+	logex.Info("we got a answer from remote")
+
 	// write to wiki in case someone ask the same question
-	c.Raw = mail.Answer
-	msg, err = w.readMailAndDestory(mail)
+	e.Customer.Raw = e.Mail.Answer
+	msg, err := w.readMailAndDestory(e.Mail)
 	if err != nil {
 		return logex.Trace(err)
 	}
-	c.Msg = msg
-
+	e.Customer.Msg = msg
 	return nil
 }
 

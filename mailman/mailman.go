@@ -8,29 +8,45 @@ import (
 
 // determine where the mail to go
 type MailMan struct {
-	pool *utils.BlockPool
+	pool        *utils.BlockPool
+	incomingBox chan *Envelope
+	outgoingBox chan *Envelope
 }
 
 func NewMailMan(pool *utils.BlockPool) *MailMan {
-	return &MailMan{
-		pool: pool,
+	mm := &MailMan{
+		pool:        pool,
+		incomingBox: make(chan *Envelope, 10),
+		outgoingBox: make(chan *Envelope, 10),
 	}
+	go mm.checkingOutgoingBox()
+	return mm
 }
 
-func (m *MailMan) SendMailAndGotReply(mail *Mail) error {
-	toURL, _ := uninet.ParseURL("udp://8.8.8.8")
-	addr := &uninet.DialAddr{
-		UDP: toURL.(*uninet.UdpURL),
-	}
-	mb, err := GetMailBox(addr, m.pool)
-	if err != nil {
-		return logex.Trace(err)
-	}
+func (m *MailMan) GetBoxes() (incomingBox, outgoingBox chan *Envelope) {
+	return m.incomingBox, m.outgoingBox
+}
 
-	err = mb.DeliverAndWaitingForReply(mail)
-	if err != nil {
-		err = logex.Trace(err)
-		return err
+func (m *MailMan) checkingOutgoingBox() {
+	for {
+		envelope := <-m.outgoingBox
+		toURL, _ := uninet.ParseURL("udp://8.8.8.8")
+		addr := &uninet.DialAddr{
+			UDP: toURL.(*uninet.UdpURL),
+		}
+		mb, err := GetMailBox(addr, m.pool)
+		if err != nil {
+			logex.Error(err)
+			continue
+		}
+
+		logex.Info("we found a mailbox")
+
+		err = mb.DeliverAndWaitingForReply(envelope.Mail)
+		if err != nil {
+			logex.Error(err)
+			continue
+		}
+		m.incomingBox <- envelope
 	}
-	return nil
 }

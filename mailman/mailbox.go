@@ -105,9 +105,12 @@ func (mb *MailBox) writer() {
 }
 
 func (mb *MailBox) DeliverAndWaitingForReply(m *Mail) error {
-
+	// timeout
 	mb.mailChan <- m
-	m.WaitForReply()
+	err := m.WaitForReply()
+	if err != nil {
+		return logex.Trace(err)
+	}
 	if m.Answer == nil {
 		return logex.NewError("not got answer")
 	}

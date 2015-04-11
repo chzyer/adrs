@@ -36,8 +36,9 @@ func main() {
 	}
 
 	mailMan := mailman.NewMailMan(pool)
+	incomingBox, outgoingBox := mailMan.GetBoxes()
 
-	wm, err := wiseman.NewWiseMan(frontCorridor, backCorridor, mailMan, mailPool)
+	wm, err := wiseman.NewWiseMan(frontCorridor, backCorridor, mailPool, incomingBox, outgoingBox)
 	if err != nil {
 		logex.Fatal(err)
 	}

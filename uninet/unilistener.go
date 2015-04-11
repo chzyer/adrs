@@ -69,7 +69,6 @@ func (u *UniListener) readingUDP() {
 			logex.Warn(err)
 			continue
 		}
-		logex.Info(block.Bytes())
 		u.blockSession <- &blockSession{block, session}
 		block = u.pool.Get()
 	}
