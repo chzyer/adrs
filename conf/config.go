@@ -7,11 +7,11 @@ import (
 	"gopkg.in/logex.v1"
 )
 
-type rawConfig struct {
-	Listen    map[string]string
-	AddrGroup map[string][]string
-	DnsGroup  []string
-	Router    map[string][]string
+type RawConfig struct {
+	Listen    map[string]string   `json:"Listen,omitempty"`
+	AddrGroup map[string][]string `json:"AddrGroup,omitempty"`
+	DnsGroup  []string            `json:"DnsGroup,omitempty"`
+	Router    map[string][]string `json:"Router,omitempty"`
 }
 
 type Config struct {
@@ -78,7 +78,7 @@ func ConvListenConfig(raw map[string]string) (*uninet.ListenConfig, error) {
 }
 
 func NewConfig(r io.Reader) (*Config, error) {
-	raw := new(rawConfig)
+	raw := new(RawConfig)
 	if err := Parse(raw, r); err != nil {
 		return nil, logex.Trace(err)
 	}

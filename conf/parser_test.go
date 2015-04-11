@@ -36,7 +36,7 @@ default:
 `
 
 func TestParser(t *testing.T) {
-	conf := new(rawConfig)
+	conf := new(RawConfig)
 	err := Parse(conf, strings.NewReader(data))
 	if err != nil {
 		logex.Error(err)
