@@ -23,7 +23,7 @@ func stringToByte(s string) []byte {
 }
 
 func main() {
-	conn, err := net.Dial("tcp", "114.114.114.114:53")
+	conn, err := net.Dial("tcp", "localhost:53")
 	if err != nil {
 		logex.Fatal(err)
 	}

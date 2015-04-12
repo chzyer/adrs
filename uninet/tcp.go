@@ -2,9 +2,15 @@ package uninet
 
 import (
 	"net"
+	"time"
 
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
+)
+
+var (
+	readTimeout  = 10 * time.Second
+	writeTimeout = 5 * time.Second
 )
 
 type tcpConn struct {
@@ -92,9 +98,11 @@ func (t *TCPListener) accept(c *tcpConn) {
 	)
 
 	for {
+		c.SetReadDeadline(time.Now().Add(readTimeout))
 		n, err = c.Read(header)
 		if err != nil || n != 2 {
 			// EOF
+			logex.Info("close cause by:", err)
 			c.Close()
 			break
 		}
@@ -102,7 +110,7 @@ func (t *TCPListener) accept(c *tcpConn) {
 		length = int(utils.ToUint16(header))
 		if length > utils.BLOCK_CAP {
 			c.Close()
-			logex.Info("close", length, utils.BLOCK_CAP, header)
+			logex.Info("close")
 			break
 		}
 		t.incomingConn <- &connHeader{c, length, reply}
@@ -120,6 +128,7 @@ func (t *TCPListener) Close() error {
 func (t *TCPListener) ReadBlock(b *utils.Block) (*TcpSession, error) {
 	connHeader := <-t.incomingConn
 	b.Length = connHeader.header
+	connHeader.conn.SetReadDeadline(time.Now().Add(readTimeout))
 	n, err := connHeader.conn.Read(b.Bytes())
 
 	if err != nil {
@@ -137,6 +146,7 @@ func (t *TCPListener) ReadBlock(b *utils.Block) (*TcpSession, error) {
 }
 
 func (t *TCPListener) WriteBlock(b *utils.Block, session *TcpSession) error {
+	session.conn.SetWriteDeadline(time.Now().Add(writeTimeout))
 	err := session.conn.WriteBlock(b)
 	if err != nil {
 		return logex.Trace(err)

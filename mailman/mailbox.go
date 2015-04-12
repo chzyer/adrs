@@ -78,10 +78,9 @@ func (mb *MailBox) reader() {
 
 	for {
 		if err = mb.net.ReadBlock(block); err != nil {
-			logex.Error(err)
 			// remote side close the connection
+			logex.Error(err)
 			break
-			continue
 		}
 
 		id = dns.PeekHeaderID(block)
