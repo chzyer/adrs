@@ -29,7 +29,7 @@ func PeekHeaderID(b *utils.Block) uint16 {
 	if b.Length < 2 {
 		return 0
 	}
-	return utils.ToUint16(b.All[:2])
+	return utils.ToUint16(b.Block[:2])
 }
 
 func NewDNSHeader(rr *utils.RecordReader) (h *DNSHeader, err error) {

@@ -74,7 +74,7 @@ func main() {
 
 	// mailman
 	for i := 0; i < mailManNum; i++ {
-		mailMan := mailman.NewMailMan(pool, incomingBox, outgoingBox)
+		mailMan := mailman.NewMailMan(config.Router, pool, incomingBox, outgoingBox)
 		go mailMan.CheckingOutgoingBox()
 	}
 

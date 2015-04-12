@@ -32,6 +32,7 @@ func TestTCPListen(t *testing.T) {
 				t.Fatal(err)
 			}
 			if err := ln.WriteBlock(block, session); err != nil {
+				logex.Error(err)
 				t.Fatal(err)
 			}
 		}

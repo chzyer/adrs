@@ -34,6 +34,14 @@ func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
 	return m, nil
 }
 
+func (m *DNSMessage) GetQueryAddr() []string {
+	qs := m.Questions
+	if len(qs) == 0 {
+		return nil
+	}
+	return qs[0].QName
+}
+
 func (m *DNSMessage) Id() uint16 {
 	return m.Header.ID
 }

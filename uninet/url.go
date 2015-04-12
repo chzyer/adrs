@@ -11,6 +11,7 @@ type URLer interface {
 	Network() string
 	Host() string
 	NetType() NetType
+	String() string
 }
 
 type BaseURL struct {
@@ -33,6 +34,9 @@ func (b *BaseURL) Network() string {
 }
 func (b *BaseURL) Host() string {
 	return b.host
+}
+func (b *BaseURL) String() string {
+	return b.Network() + "://" + b.Host()
 }
 
 func ParseURLEx(u string, netType NetType) (URLer, error) {

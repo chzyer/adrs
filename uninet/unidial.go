@@ -5,57 +5,71 @@ import (
 	"gopkg.in/logex.v1"
 )
 
-type DialAddr struct {
-	UDP *UdpURL
-}
-
-func (d *DialAddr) String() string {
-	return d.UDP.Network() + "://" + d.UDP.Host()
-}
+var (
+	ErrNotSuchProtocol = logex.NewError("not supported such protocol yet: %s")
+)
 
 type UniDial struct {
-	Addr      *DialAddr
-	UDP       *UDPDialer
+	netType   NetType
+	udp       *UDPDialer
+	tcp       *TCPDialer
 	RetryTime int
 }
 
-func NewUniDial(addr *DialAddr) (*UniDial, error) {
-	udp, err := DialUDP(addr.UDP)
-	if err != nil {
-		return nil, logex.Trace(err)
+func NewUniDial(addr URLer) (*UniDial, error) {
+	ud := &UniDial{
+		netType: addr.NetType(),
+	}
+	var (
+		err error
+	)
+
+	switch addr.NetType() {
+	case NET_UDP:
+		ud.udp, err = DialUDP(addr.(*UdpURL))
+		if err != nil {
+			return nil, logex.Trace(err)
+		}
+	case NET_TCP:
+		ud.tcp, err = DialTCP(addr.(*TcpURL))
+		if err != nil {
+			return nil, logex.Trace(err)
+		}
+	default:
+		return nil, logex.Trace(ErrNotSuchProtocol).Format(addr.Network())
 	}
 
-	ud := &UniDial{
-		Addr: addr,
-		UDP:  udp,
-	}
 	return ud, nil
 }
 
-func (u *UniDial) ReadBlockUDP(b *utils.Block) (err error) {
-	err = u.UDP.ReadBlock(b)
-	if err != nil {
-		return logex.Trace(err)
+func (u *UniDial) ReadBlock(b *utils.Block) (err error) {
+	switch u.netType {
+	case NET_UDP:
+		err = u.udp.ReadBlock(b)
+		if err != nil {
+			return logex.Trace(err)
+		}
+	case NET_TCP:
+		err = u.tcp.ReadBlock(b)
+		if err != nil {
+			return logex.Trace(err)
+		}
 	}
-
 	return
 }
 
-func (u *UniDial) WriteBlockUDP(b *utils.Block) (err error) {
-	i := 0
-	for ; i < u.RetryTime || u.RetryTime == 0; i++ {
-		err = u.UDP.WriteBlock(b)
-		if err == nil {
-			break
+func (u *UniDial) WriteBlock(b *utils.Block) (err error) {
+	switch u.netType {
+	case NET_UDP:
+		err = u.udp.WriteBlock(b)
+		if err != nil {
+			return logex.Trace(err)
 		}
-	}
-
-	if err != nil {
-		return logex.Trace(err)
-	}
-
-	if i > 0 {
-		logex.Warn("write udp to", u.Addr.UDP, "fail", i, "times")
+	case NET_TCP:
+		err = u.tcp.WriteBlock(b)
+		if err != nil {
+			return logex.Trace(err)
+		}
 	}
 	return
 }

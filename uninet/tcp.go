@@ -18,29 +18,22 @@ func newTcpConn(conn *net.TCPConn) *tcpConn {
 }
 
 func (c *tcpConn) ReadBlock(b *utils.Block) error {
-	n, err := c.Read(b.All)
+	n, err := c.Read(b.PlusHeaderBlock())
 	if err != nil {
 		return logex.Trace(err)
 	}
 
-	b.Length = n
+	b.SetLengthPlusHeader(n)
 	return nil
 }
 
 func (c *tcpConn) WriteBlock(b *utils.Block) error {
-	n, err := c.Write(utils.Uint16To(uint16(b.Length)))
+	n, err := c.Write(b.PlusHeaderBytes())
 	if err != nil {
 		return logex.Trace(err)
 	}
-	if n != 2 {
-		return logex.Trace(ErrShortWritten)
-	}
-	n, err = c.Write(b.Bytes())
-	if err != nil {
-		return logex.Trace(err)
-	}
-	if n != b.Length {
-		return logex.Trace(ErrShortWritten)
+	if n != b.PlusHeaderLength() {
+		return logex.Trace(ErrShortWritten, n, b.PlusHeaderLength())
 	}
 	return nil
 }
@@ -53,6 +46,7 @@ type TCPListener struct {
 type connHeader struct {
 	conn   *tcpConn
 	header int
+	reply  chan bool
 }
 
 func ListenTcp(url *TcpURL) (*TCPListener, error) {
@@ -89,23 +83,34 @@ func (t *TCPListener) listen() {
 }
 
 // check header!
-func (t *TCPListener) accept(c *tcpConn) bool {
-	header := make([]byte, 2)
-	n, err := c.Read(header)
-	if err != nil || n != 2 {
-		// EOF
-		c.Close()
-		return false
-	}
+func (t *TCPListener) accept(c *tcpConn) {
+	var (
+		header    = make([]byte, 2)
+		reply     = make(chan bool)
+		err       error
+		n, length int
+	)
 
-	length := int(utils.ToUint16(header))
-	if length > utils.BLOCK_CAP {
-		c.Close()
-		logex.Info("close")
-		return false
+	for {
+		n, err = c.Read(header)
+		if err != nil || n != 2 {
+			// EOF
+			c.Close()
+			break
+		}
+
+		length = int(utils.ToUint16(header))
+		if length > utils.BLOCK_CAP {
+			c.Close()
+			logex.Info("close", length, utils.BLOCK_CAP, header)
+			break
+		}
+		t.incomingConn <- &connHeader{c, length, reply}
+		if !<-reply {
+			c.Close()
+			break
+		}
 	}
-	t.incomingConn <- &connHeader{c, length}
-	return true
 }
 
 func (t *TCPListener) Close() error {
@@ -116,12 +121,17 @@ func (t *TCPListener) ReadBlock(b *utils.Block) (*TcpSession, error) {
 	connHeader := <-t.incomingConn
 	b.Length = connHeader.header
 	n, err := connHeader.conn.Read(b.Bytes())
+
 	if err != nil {
+		connHeader.reply <- false
 		return nil, logex.Trace(err)
 	}
+
 	if n != connHeader.header {
+		connHeader.reply <- false
 		return nil, logex.Trace(ErrShortRead)
 	}
+	connHeader.reply <- true
 
 	return NewTcpSession(connHeader.conn.RemoteAddr().(*net.TCPAddr), connHeader.conn), nil
 }
@@ -132,11 +142,39 @@ func (t *TCPListener) WriteBlock(b *utils.Block, session *TcpSession) error {
 		return logex.Trace(err)
 	}
 
-	// if other message?
-	/*
-		if !t.accept(session.conn) {
-			return nil
-		}
-	*/
 	return nil
+}
+
+type TCPDialer struct {
+	conn *tcpConn
+}
+
+func DialTCP(addr *TcpURL) (*TCPDialer, error) {
+	c, err := net.Dial(addr.Network(), addr.Host())
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+	conn := c.(*net.TCPConn)
+	t := &TCPDialer{
+		conn: newTcpConn(conn),
+	}
+	return t, nil
+}
+
+func (t *TCPDialer) ReadBlock(b *utils.Block) error {
+	if err := t.conn.ReadBlock(b); err != nil {
+		return logex.Trace(err)
+	}
+	return nil
+}
+
+func (t *TCPDialer) WriteBlock(b *utils.Block) error {
+	if err := t.conn.WriteBlock(b); err != nil {
+		return logex.Trace(err)
+	}
+	return nil
+}
+
+func (t *TCPDialer) Close() error {
+	return logex.TraceIfError(t.conn.Close())
 }

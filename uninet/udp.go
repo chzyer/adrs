@@ -28,7 +28,7 @@ func newUDPConn(conn *net.UDPConn) *udpConn {
 }
 
 func (c *udpConn) ReadBlock(b *utils.Block) error {
-	n, err := c.Read(b.All)
+	n, err := c.Read(b.Block)
 	if err != nil {
 		return logex.Trace(err)
 	}
@@ -37,10 +37,8 @@ func (c *udpConn) ReadBlock(b *utils.Block) error {
 	return nil
 }
 
-var in int64
-
 func (c *udpConn) ReadBlockFrom(b *utils.Block) (*UdpSession, error) {
-	n, addr, err := c.ReadFromUDP(b.All)
+	n, addr, err := c.ReadFromUDP(b.Block)
 	if err != nil {
 		return nil, logex.Trace(err)
 	}

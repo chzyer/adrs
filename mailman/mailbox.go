@@ -15,21 +15,26 @@ var (
 	gMailBoxMutex sync.Mutex
 )
 
-func GetMailBox(addr *uninet.DialAddr, pool *utils.BlockPool) (*MailBox, error) {
+func GetMailBoxs(addrs []uninet.URLer, pool *utils.BlockPool) ([]*MailBox, error) {
 	gMailBoxMutex.Lock()
 	defer gMailBoxMutex.Unlock()
+	var err error
 
-	mb, ok := gMailBox[addr.String()]
-	if ok {
-		return mb, nil
+	var mbs []*MailBox
+	for _, addr := range addrs {
+		mb, ok := gMailBox[addr.String()]
+		if !ok {
+			mb, err = NewMailBox(addr, pool)
+			if err != nil {
+				return nil, logex.Trace(err)
+			}
+			gMailBox[addr.String()] = mb
+		}
+
+		mbs = append(mbs, mb)
 	}
 
-	mb, err := NewMailBox(addr, pool)
-	if err != nil {
-		return nil, logex.Trace(err)
-	}
-	gMailBox[addr.String()] = mb
-	return mb, nil
+	return mbs, nil
 }
 
 type EnvelopePackage struct {
@@ -45,7 +50,7 @@ type MailBox struct {
 	boxLock   sync.Mutex
 }
 
-func NewMailBox(host *uninet.DialAddr, pool *utils.BlockPool) (*MailBox, error) {
+func NewMailBox(host uninet.URLer, pool *utils.BlockPool) (*MailBox, error) {
 	n, err := uninet.NewUniDial(host)
 	if err != nil {
 		return nil, logex.Trace(err)
@@ -72,8 +77,10 @@ func (mb *MailBox) reader() {
 	)
 
 	for {
-		if err = mb.net.UDP.ReadBlock(block); err != nil {
+		if err = mb.net.ReadBlock(block); err != nil {
 			logex.Error(err)
+			// remote side close the connection
+			break
 			continue
 		}
 
@@ -103,7 +110,7 @@ func (mb *MailBox) writer() {
 	)
 	for pkg := range mb.pkgChan {
 		mail = pkg.envelope.Mail
-		err = mb.net.WriteBlockUDP(mail.Content.Block())
+		err = mb.net.WriteBlock(mail.Content.Block())
 		if err != nil {
 			logex.Error(err)
 			continue

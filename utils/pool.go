@@ -10,7 +10,8 @@ import (
 const BLOCK_CAP = 512
 
 type Block struct {
-	All      []byte
+	start    []byte
+	Block    []byte
 	Length   int
 	pool     *BlockPool
 	recycled bool
@@ -18,19 +19,41 @@ type Block struct {
 
 func NewBlockWithByte(b []byte) *Block {
 	return &Block{
-		All:    b,
+		Block:  b,
 		Length: len(b),
 	}
 }
 
 func NewBlock(pool *BlockPool) *Block {
+	// tcp header
+	block := make([]byte, BLOCK_CAP+2)
 	b := &Block{
-		All:      make([]byte, BLOCK_CAP),
+		start:    block,
+		Block:    block[2:],
 		Length:   0,
 		pool:     pool,
 		recycled: false,
 	}
 	return b
+}
+
+// for write
+func (b *Block) PlusHeaderBlock() []byte {
+	return b.start
+}
+
+func (b *Block) SetLengthPlusHeader(l int) {
+	b.Length = l - 2
+}
+
+// for read
+func (b *Block) PlusHeaderBytes() []byte {
+	copy(b.start[:2], Uint16To(uint16(b.Length)))
+	return b.start[:b.PlusHeaderLength()]
+}
+
+func (b *Block) PlusHeaderLength() int {
+	return b.Length + 2
 }
 
 func (b *Block) Init() {
@@ -40,7 +63,7 @@ func (b *Block) Init() {
 }
 
 func (b *Block) Write(bytes []byte) (int, error) {
-	n := copy(b.All[b.Length:], bytes)
+	n := copy(b.Block[b.Length:], bytes)
 	b.Length += n
 	return n, nil
 }
@@ -63,10 +86,10 @@ func (b *Block) Len() int {
 }
 
 func (b *Block) Bytes() []byte {
-	if b.Length > cap(b.All) {
-		return b.All
+	if b.Length > cap(b.Block) {
+		return b.Block
 	}
-	return b.All[:b.Length]
+	return b.Block[:b.Length]
 }
 
 type BlockPooler interface {
