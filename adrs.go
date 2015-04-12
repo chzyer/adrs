@@ -14,6 +14,7 @@ import (
 	"github.com/chzyer/adrs/mailman"
 	"github.com/chzyer/adrs/uninet"
 	"github.com/chzyer/adrs/utils"
+	"github.com/chzyer/adrs/wiki"
 	"github.com/chzyer/adrs/wiseman"
 	"gopkg.in/logex.v1"
 )
@@ -63,9 +64,10 @@ func main() {
 	}
 	g.Start()
 
+	book := wiki.NewWiki(config, pool)
 	// wiseman
 	for i := 0; i < wiseManNum; i++ {
-		wm, err := wiseman.NewWiseMan(frontCorridor, backCorridor, incomingBox, outgoingBox)
+		wm, err := wiseman.NewWiseMan(frontCorridor, backCorridor, book, incomingBox, outgoingBox)
 		if err != nil {
 			logex.Fatal(err)
 		}

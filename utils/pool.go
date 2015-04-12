@@ -46,6 +46,12 @@ func (b *Block) SetLengthPlusHeader(l int) {
 	b.Length = l - 2
 }
 
+func (b *Block) CopyTo(b2 *Block) {
+	copy(b2.start, b.start)
+	b2.Length = b.Length
+	return
+}
+
 // for read
 func (b *Block) PlusHeaderBytes() []byte {
 	copy(b.start[:2], Uint16To(uint16(b.Length)))

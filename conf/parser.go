@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"gopkg.in/logex.v1"
@@ -17,6 +18,21 @@ func init() {
 	var mapSlice map[string][]string
 	var mapString map[string]string
 	var slice []string
+	var str string
+	var integer int
+	kindMap[reflect.TypeOf(integer).String()] = &KindParser{
+		ParseInt,
+		func() interface{} {
+			return 0
+		},
+	}
+
+	kindMap[reflect.TypeOf(str).String()] = &KindParser{
+		ParseString,
+		func() interface{} {
+			return ""
+		},
+	}
 	kindMap[reflect.TypeOf(mapSlice).String()] = &KindParser{
 		ParseMapSlice,
 		func() interface{} {
@@ -114,6 +130,41 @@ func ParseMapString(ret interface{}, s *bufio.Scanner) error {
 	}
 
 	Set(ret, data)
+	return nil
+}
+
+func ParseInt(ret interface{}, s *bufio.Scanner) error {
+	data := []string{}
+	for s.Scan() {
+		line := s.Text()
+		if len(line) == 0 {
+			break
+		}
+
+		data = append(data, strings.TrimSpace(line))
+	}
+
+	all := strings.Join(data, "")
+	integer, err := strconv.Atoi(all)
+	if err != nil {
+		return logex.Trace(err)
+	}
+	Set(ret, integer)
+	return nil
+}
+
+func ParseString(ret interface{}, s *bufio.Scanner) error {
+	data := []string{}
+	for s.Scan() {
+		line := s.Text()
+		if len(line) == 0 {
+			break
+		}
+
+		data = append(data, strings.TrimSpace(line))
+	}
+
+	Set(ret, strings.Join(data, "\n"))
 	return nil
 }
 

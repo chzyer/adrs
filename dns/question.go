@@ -1,6 +1,9 @@
 package dns
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
@@ -155,6 +158,10 @@ func NewDNSQuestion(r *utils.RecordReader) (*DNSQuestion, error) {
 		QType:  QTYPE(qType),
 		QClass: QCLASS(qClass),
 	}, nil
+}
+
+func (q *DNSQuestion) Key() string {
+	return fmt.Sprintf("%d/%d/%s", q.QType, q.QClass, strings.Join(q.QName, "."))
 }
 
 func (q *DNSQuestion) Equal(q2 *DNSQuestion) bool {

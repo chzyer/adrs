@@ -8,16 +8,50 @@ import (
 )
 
 type RawConfig struct {
-	Listen    map[string]string   `json:"Listen,omitempty"`
-	AddrGroup map[string][]string `json:"AddrGroup,omitempty"`
-	DnsGroup  []string            `json:"DnsGroup,omitempty"`
-	Router    map[string][]string `json:"Router,omitempty"`
+	TTLRatio     int                 `json:"TTLRatio"`
+	DisableCache string              `json:"DisableCache"`
+	Listen       map[string]string   `json:"Listen,omitempty"`
+	AddrGroup    map[string][]string `json:"AddrGroup,omitempty"`
+	DnsGroup     []string            `json:"DnsGroup,omitempty"`
+	Router       map[string][]string `json:"Router,omitempty"`
 }
 
 type Config struct {
-	Listen    *uninet.ListenConfig
-	AddrGroup map[string][]uninet.URLer
-	Router    map[string][]uninet.URLer // map[domain] []server
+	TTLRatio     int
+	Listen       *uninet.ListenConfig
+	AddrGroup    map[string][]uninet.URLer
+	Router       map[string][]uninet.URLer // map[domain] []server
+	DisableCache bool
+}
+
+func NewConfig(r io.Reader) (*Config, error) {
+	raw := new(RawConfig)
+	if err := Parse(raw, r); err != nil {
+		return nil, logex.Trace(err)
+	}
+
+	listenConfig, err := ConvListenConfig(raw.Listen)
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+	addrGroup, err := ConvAddrGroup(raw.AddrGroup)
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+	router, err := ConvRouter(raw.Router, addrGroup)
+	if err != nil {
+		return nil, logex.Trace(err)
+	}
+
+	c := &Config{
+		Listen:       listenConfig,
+		AddrGroup:    addrGroup,
+		Router:       router,
+		DisableCache: raw.DisableCache == "true",
+		TTLRatio:     raw.TTLRatio,
+	}
+	return c, nil
+
 }
 
 func ConvAddrGroup(raw map[string][]string) (map[string][]uninet.URLer, error) {
@@ -75,32 +109,4 @@ func ConvListenConfig(raw map[string]string) (*uninet.ListenConfig, error) {
 	}
 
 	return listenConfig, nil
-}
-
-func NewConfig(r io.Reader) (*Config, error) {
-	raw := new(RawConfig)
-	if err := Parse(raw, r); err != nil {
-		return nil, logex.Trace(err)
-	}
-
-	listenConfig, err := ConvListenConfig(raw.Listen)
-	if err != nil {
-		return nil, logex.Trace(err)
-	}
-	addrGroup, err := ConvAddrGroup(raw.AddrGroup)
-	if err != nil {
-		return nil, logex.Trace(err)
-	}
-	router, err := ConvRouter(raw.Router, addrGroup)
-	if err != nil {
-		return nil, logex.Trace(err)
-	}
-
-	c := &Config{
-		Listen:    listenConfig,
-		AddrGroup: addrGroup,
-		Router:    router,
-	}
-	return c, nil
-
 }

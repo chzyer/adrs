@@ -5,6 +5,7 @@ import (
 	"github.com/chzyer/adrs/dns"
 	"github.com/chzyer/adrs/mailman"
 	"github.com/chzyer/adrs/utils"
+	"github.com/chzyer/adrs/wiki"
 	"gopkg.in/logex.v1"
 )
 
@@ -12,14 +13,16 @@ type WiseMan struct {
 	frontDoor   customer.Corridor
 	backDoor    customer.Corridor
 	mailMan     *mailman.MailMan
+	book        *wiki.Wiki
 	incomingBox chan *mailman.Envelope
 	outgoingBox chan *mailman.Envelope
 }
 
-func NewWiseMan(frontDoor, backDoor customer.Corridor, incomingBox, outgoingBox chan *mailman.Envelope) (*WiseMan, error) {
+func NewWiseMan(frontDoor, backDoor customer.Corridor, book *wiki.Wiki, incomingBox, outgoingBox chan *mailman.Envelope) (*WiseMan, error) {
 	w := &WiseMan{
 		frontDoor:   frontDoor,
 		backDoor:    backDoor,
+		book:        book,
 		incomingBox: incomingBox,
 		outgoingBox: outgoingBox,
 	}
@@ -40,6 +43,7 @@ func (w *WiseMan) ServeAll() {
 				envelope.Customer.LetItGo()
 				continue
 			}
+			w.book.WriteDown(envelope.Customer.Msg, envelope.Customer.Raw)
 			// say goodbye
 			w.backDoor <- envelope.Customer
 		case customer = <-w.frontDoor:
@@ -64,6 +68,17 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 
 	logex.Info("here comes a customer")
 	// looking up the wikis.
+	b, ok := w.book.Lookup(msg)
+	if ok {
+		copy(b.Block[:2], c.Raw.Block[:2])
+		c.Raw = b
+		c.Msg, err = dns.NewDNSMessage(utils.NewRecordReader(b))
+		if err != nil {
+			return logex.Trace(err, "oo")
+		}
+		w.backDoor <- c
+		return nil
+	}
 	// ask others
 
 	// we don't know where to send yet
