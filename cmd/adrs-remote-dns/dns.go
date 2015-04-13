@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
@@ -23,17 +25,29 @@ func stringToByte(s string) []byte {
 }
 
 func main() {
-	conn, err := net.Dial("tcp", "localhost:53")
+	var network string
+	var host string
+	flag.StringVar(&network, "n", "udp", "network")
+	flag.StringVar(&host, "h", "8.8.8.8:53", "host name")
+	flag.Parse()
+
+	conn, err := net.Dial(network, host)
 	if err != nil {
 		logex.Fatal(err)
 	}
 	defer conn.Close()
 
 	data := stringToByte(singleRequestStr)
-	data = append(utils.Uint16To(uint16(len(data))), data...)
+	if network == "tcp" {
+		data = append(utils.Uint16To(uint16(len(data))), data...)
+	}
 
+	go func() {
+		for _ = range time.Tick(time.Second) {
+			write(conn, data)
+		}
+	}()
 	for {
-		write(conn, data)
 		read(conn)
 	}
 }
