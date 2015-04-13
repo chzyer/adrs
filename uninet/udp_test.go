@@ -12,8 +12,12 @@ import (
 	"gopkg.in/logex.v1"
 )
 
+var (
+	testHost = "localhost:4324"
+)
+
 func TestUDPDial(t *testing.T) {
-	addr, err := net.ResolveUDPAddr("udp", "localhost:12345")
+	addr, err := net.ResolveUDPAddr("udp", testHost)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +47,7 @@ func TestUDPDial(t *testing.T) {
 		}
 	}()
 
-	url, err := ParseURL("udp://localhost:12345")
+	url, err := ParseURL("udp://" + testHost)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +99,7 @@ func testDial(u *UdpURL, source []byte) error {
 
 func TestUDPListen(t *testing.T) {
 	runtime.GOMAXPROCS(4)
-	url, err := ParseURL("udp://0.0.0.0:12345")
+	url, err := ParseURL("udp://" + testHost)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +143,7 @@ func TestUDPListen(t *testing.T) {
 		source := source
 		go func() {
 			defer wg.Done()
-			err := mockUdpConn("localhost:12345", source)
+			err := mockUdpConn(testHost, source)
 			if err != nil {
 				t.Fatal(err)
 			}
