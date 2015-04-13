@@ -74,6 +74,14 @@ func (b *Block) Write(bytes []byte) (int, error) {
 	return n, nil
 }
 
+func (b *Block) RemainLength() int {
+	return len(b.Block) - b.Length
+}
+
+func (b *Block) RemainBytes() []byte {
+	return b.Block[b.Length:]
+}
+
 func (b *Block) Recycle() {
 	if b.recycled {
 		return
