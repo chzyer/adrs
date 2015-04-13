@@ -76,6 +76,11 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 		if err != nil {
 			return logex.Trace(err, "oo")
 		}
+		for _, r := range c.Msg.Resources {
+			if r.Type == dns.QTYPE_A {
+				logex.Info(c.Msg.GetQueryAddr(), "->", r.RData)
+			}
+		}
 		w.backDoor <- c
 		return nil
 	}
