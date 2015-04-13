@@ -2,6 +2,7 @@ package dns
 
 import (
 	"bytes"
+	"time"
 
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
@@ -51,6 +52,9 @@ type DNSResource struct {
 	// transaction in progress, and should not be cached.
 	TTL uint32
 
+	// Calculate by TTL
+	Deadline time.Time
+
 	// an unsigned 16 bit integer that specifies the length in
 	// octets of the RDATA field.
 	RDLength uint16
@@ -83,6 +87,7 @@ func NewDNSResource(r *utils.RecordReader) (*DNSResource, error) {
 	if err != nil {
 		return nil, logex.Trace(err)
 	}
+	deadline := utils.Now().Add(time.Duration(qTTL) * time.Second)
 
 	qRDLength, err := r.ReadUint16()
 	if err != nil {
@@ -100,9 +105,38 @@ func NewDNSResource(r *utils.RecordReader) (*DNSResource, error) {
 		Type:     qType,
 		Class:    qClass,
 		TTL:      qTTL,
+		Deadline: deadline,
 		RDLength: qRDLength,
 		RData:    qRData,
 	}, nil
+}
+
+func (r *DNSResource) WriteTo(w *utils.RecordWriter) (err error) {
+	if err = w.WriteSafe(r.Name); err != nil {
+		return logex.Trace(err)
+	}
+
+	if err = w.WriteUint16(r.Type); err != nil {
+		return logex.Trace(err)
+	}
+
+	if err = w.WriteUint16(r.Class); err != nil {
+		return logex.Trace(err)
+	}
+
+	ttl := uint32(r.Deadline.Sub(utils.Now()).Seconds())
+	if err = w.WriteUint32(ttl); err != nil {
+		return logex.Trace(err)
+	}
+
+	if err = w.WriteUint16(r.RDLength); err != nil {
+		return logex.Trace(err)
+	}
+
+	if err = w.WriteSafe(r.RData); err != nil {
+		return logex.Trace(err)
+	}
+	return
 }
 
 func (r *DNSResource) Equal(r2 *DNSResource) bool {

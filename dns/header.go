@@ -60,6 +60,28 @@ func NewDNSHeader(rr *utils.RecordReader) (h *DNSHeader, err error) {
 	return
 }
 
+func (h *DNSHeader) WriteTo(w *utils.RecordWriter) (err error) {
+	if err = w.WriteUint16(h.ID); err != nil {
+		return logex.Trace(err)
+	}
+	if err = h.Option.WriteTo(w); err != nil {
+		return logex.Trace(err)
+	}
+	if err = w.WriteUint16(h.QDCount); err != nil {
+		return logex.Trace(err)
+	}
+	if err = w.WriteUint16(h.ANCount); err != nil {
+		return logex.Trace(err)
+	}
+	if err = w.WriteUint16(h.NSCount); err != nil {
+		return logex.Trace(err)
+	}
+	if err = w.WriteUint16(h.ARCount); err != nil {
+		return logex.Trace(err)
+	}
+	return nil
+}
+
 func (h *DNSHeader) Equal(h2 *DNSHeader) bool {
 	if h != nil && h2 == nil || h == nil && h2 != nil {
 		return false

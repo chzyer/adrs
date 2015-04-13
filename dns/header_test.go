@@ -22,7 +22,7 @@ var testHeader = []headerMatch{
 			Option: &DNSHeaderOption{
 				QR:     QR_QUERY,
 				OpCode: 0,
-				RD:     true,
+				RD:     1,
 			},
 			QDCount: 1,
 		},
@@ -35,9 +35,9 @@ var testHeader = []headerMatch{
 			Option: &DNSHeaderOption{
 				QR:     QR_RESP,
 				OpCode: 1,
-				AA:     true,
-				RD:     true,
-				RA:     true,
+				AA:     1,
+				RD:     1,
+				RA:     1,
 				Rcode:  RCODE_NOT_IMP,
 			},
 			QDCount: 1,

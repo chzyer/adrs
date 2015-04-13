@@ -160,6 +160,19 @@ func NewDNSQuestion(r *utils.RecordReader) (*DNSQuestion, error) {
 	}, nil
 }
 
+func (q *DNSQuestion) WriteTo(w *utils.RecordWriter) (err error) {
+	if err = w.WriteStringWithHeader(q.QName); err != nil {
+		return logex.Trace(err)
+	}
+	if err = w.WriteUint16(uint16(q.QType)); err != nil {
+		return logex.Trace(err)
+	}
+	if err = w.WriteUint16(uint16(q.QClass)); err != nil {
+		return logex.Trace(err)
+	}
+	return
+}
+
 func (q *DNSQuestion) Key() string {
 	return fmt.Sprintf("%d/%d/%s", q.QType, q.QClass, strings.Join(q.QName, "."))
 }

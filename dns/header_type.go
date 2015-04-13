@@ -18,13 +18,29 @@ func NewDNSHeaderOption(option uint64) *DNSHeaderOption {
 	return &DNSHeaderOption{
 		QR:     QR(utils.Read8Bit(option, 15, 1)),
 		OpCode: OPCODE(utils.Read8Bit(option, 11, 4)),
-		AA:     AA(utils.ReadBitBool(option, 10)),
-		TC:     TC(utils.ReadBitBool(option, 9)),
-		RD:     RD(utils.ReadBitBool(option, 8)),
-		RA:     RA(utils.ReadBitBool(option, 7)),
+		AA:     AA(utils.ReadBit(option, 10)),
+		TC:     TC(utils.ReadBit(option, 9)),
+		RD:     RD(utils.ReadBit(option, 8)),
+		RA:     RA(utils.ReadBit(option, 7)),
 		Z:      Z(utils.Read8Bit(option, 4, 3)),
 		Rcode:  RCODE(utils.Read8Bit(option, 0, 4)),
 	}
+}
+
+func (d *DNSHeaderOption) WriteTo(w *utils.RecordWriter) error {
+	var data uint16
+	data &= uint16(d.QR << 15)
+	data &= uint16(d.OpCode << 11)
+	data &= uint16(d.AA << 10)
+	data &= uint16(d.TC << 9)
+	data &= uint16(d.RD << 8)
+	data &= uint16(d.RA << 7)
+	data &= uint16(d.Z << 4)
+	data &= uint16(d.Rcode)
+	if err := w.WriteUint16(data); err != nil {
+		return err
+	}
+	return nil
 }
 
 // A one bit field that specifies whether this message is a
@@ -59,23 +75,23 @@ const (
 // multiple owner names because of aliases.  The AA bit
 // corresponds to the name which matches the query name, or
 // the first owner name in the answer section.
-type AA bool
+type AA uint8
 
 // TrunCation - specifies that this message was truncated
 // due to length greater than that permitted on the
 // transmission channel.
-type TC bool
+type TC uint8
 
 // Recursion Desired - this bit may be set in a query and
 // is copied into the response.  If RD is set, it directs
 // the name server to pursue the query recursively.
 // Recursive query support is optional.
-type RD bool
+type RD uint8
 
 // Recursion Available - this be is set or cleared in a
 // response, and denotes whether recursive query support is
 // available in the name server.
-type RA bool
+type RA uint8
 
 // Reserved for future use.  Must be zero in all queries
 // and responses.
