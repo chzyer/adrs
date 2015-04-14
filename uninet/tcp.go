@@ -102,7 +102,9 @@ func (t *TCPListener) accept(c *tcpConn) {
 		n, err = c.Read(header)
 		if err != nil || n != 2 {
 			// EOF
-			logex.Info("close cause by:", err)
+			if !inTest {
+				logex.Info("close cause by:", err)
+			}
 			c.Close()
 			break
 		}

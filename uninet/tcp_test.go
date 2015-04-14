@@ -11,6 +11,10 @@ import (
 	"gopkg.in/logex.v1"
 )
 
+func init() {
+	inTest = true
+}
+
 func TestTCPListen(t *testing.T) {
 	runtime.GOMAXPROCS(4)
 	url, err := ParseURL("tcp://:12345")

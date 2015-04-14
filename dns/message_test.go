@@ -1,10 +1,16 @@
 package dns
 
 import (
+	"bytes"
 	"testing"
 
+	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
+
+func init() {
+	inTest = true
+}
 
 type msgMatch struct {
 	msg *DNSMessage
@@ -60,6 +66,7 @@ var testMsg = []msgMatch{
 
 func TestMessage(t *testing.T) {
 	for _, q := range testMsg {
+		by := stringToByte(q.m)
 		r := stringToReader(q.m)
 		msg, err := NewDNSMessage(r)
 		if err != nil {
@@ -71,5 +78,17 @@ func TestMessage(t *testing.T) {
 			t.Error("result not except")
 		}
 
+		b := utils.NewBlockWithByte(make([]byte, 512))
+		b.Length = 0
+		if err := msg.WriteTo(utils.NewRecordWriter(b)); err != nil {
+			logex.Error(err)
+			t.Fatal(err)
+		}
+
+		if !bytes.Equal(b.Bytes(), by) {
+			logex.Error(b.Bytes())
+			logex.Error(by)
+			t.Fatal("result not except")
+		}
 	}
 }

@@ -40,6 +40,7 @@ func (w *RecordWriter) WriteUint8(d uint8) error {
 		return ErrBlockrOverflow
 	}
 	Uint8WriteTo(d, w.underlying.RemainBytes())
+	w.underlying.Length += 1
 	return nil
 }
 
@@ -48,6 +49,7 @@ func (w *RecordWriter) WriteUint16(d uint16) error {
 		return ErrBlockrOverflow
 	}
 	Uint16WriteTo(d, w.underlying.RemainBytes())
+	w.underlying.Length += 2
 	return nil
 }
 
@@ -56,6 +58,7 @@ func (w *RecordWriter) WriteUint32(d uint32) error {
 		return ErrBlockrOverflow
 	}
 	Uint32WriteTo(d, w.underlying.RemainBytes())
+	w.underlying.Length += 4
 	return nil
 }
 
@@ -70,6 +73,9 @@ func (w *RecordWriter) WriteStringWithHeader(ss []string) (err error) {
 		} else if n != len(ss[idx]) {
 			return ErrShortWritten
 		}
+	}
+	if err = w.WriteUint8(0); err != nil {
+		return logex.Trace(err)
 	}
 	return
 }

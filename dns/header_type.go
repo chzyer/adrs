@@ -29,14 +29,15 @@ func NewDNSHeaderOption(option uint64) *DNSHeaderOption {
 
 func (d *DNSHeaderOption) WriteTo(w *utils.RecordWriter) error {
 	var data uint16
-	data &= uint16(d.QR << 15)
-	data &= uint16(d.OpCode << 11)
-	data &= uint16(d.AA << 10)
-	data &= uint16(d.TC << 9)
-	data &= uint16(d.RD << 8)
-	data &= uint16(d.RA << 7)
-	data &= uint16(d.Z << 4)
-	data &= uint16(d.Rcode)
+	data |= uint16(d.QR) << 15
+	data |= uint16(d.OpCode) << 11
+	data |= uint16(d.AA) << 10
+	data |= uint16(d.TC) << 9
+	data |= uint16(d.RD) << 8
+	data |= uint16(d.RA) << 7
+	data |= uint16(d.Z) << 4
+	data |= uint16(d.Rcode)
+
 	if err := w.WriteUint16(data); err != nil {
 		return err
 	}

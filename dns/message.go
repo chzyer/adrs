@@ -38,17 +38,18 @@ func (m *DNSMessage) WriteTo(w *utils.RecordWriter) (err error) {
 	if err = m.Header.WriteTo(w); err != nil {
 		return logex.Trace(err)
 	}
+
 	for _, q := range m.Questions {
 		if err = q.WriteTo(w); err != nil {
 			return logex.Trace(err)
 		}
 	}
+
 	for _, r := range m.Resources {
 		if err = r.WriteTo(w); err != nil {
 			return logex.Trace(err)
 		}
 	}
-
 	return
 }
 
