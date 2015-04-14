@@ -128,15 +128,9 @@ func (r *DNSResource) WriteTo(w *utils.RecordWriter) (err error) {
 		return logex.Trace(err)
 	}
 
-	if !inTest {
-		if err = w.WriteUint32(r.TTL); err != nil {
-			return logex.Trace(err)
-		}
-	} else {
-		ttl := uint32(r.Deadline.Sub(utils.Now()).Seconds())
-		if err = w.WriteUint32(ttl); err != nil {
-			return logex.Trace(err)
-		}
+	ttl := uint32(r.Deadline.Sub(utils.Now()).Seconds())
+	if err = w.WriteUint32(ttl); err != nil {
+		return logex.Trace(err)
 	}
 
 	if err = w.WriteUint16(r.RDLength); err != nil {

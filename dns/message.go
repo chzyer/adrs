@@ -1,6 +1,8 @@
 package dns
 
 import (
+	"time"
+
 	"github.com/chzyer/adrs/utils"
 	"gopkg.in/logex.v1"
 )
@@ -9,7 +11,7 @@ type DNSMessage struct {
 	Header    *DNSHeader
 	Questions []*DNSQuestion
 	Resources []*DNSResource
-	reader    *utils.RecordReader
+	block     *utils.Block
 }
 
 func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
@@ -30,8 +32,24 @@ func NewDNSMessage(r *utils.RecordReader) (*DNSMessage, error) {
 		return nil, logex.Trace(err)
 	}
 
-	m.reader = r
+	m.block = r.Block()
 	return m, nil
+}
+
+func (m *DNSMessage) Copy(b *utils.Block) *DNSMessage {
+	return &DNSMessage{
+		Header:    m.Header,
+		Questions: m.Questions,
+		Resources: m.Resources,
+		block:     b,
+	}
+}
+
+func (m *DNSMessage) GetDeadline() time.Time {
+	if len(m.Resources) == 0 {
+		return time.Time{}
+	}
+	return m.Resources[0].Deadline
 }
 
 func (m *DNSMessage) WriteTo(w *utils.RecordWriter) (err error) {
@@ -73,8 +91,15 @@ func (m *DNSMessage) Id() uint16 {
 	return m.Header.ID
 }
 
+// will write to block if block is empty
 func (m *DNSMessage) Block() *utils.Block {
-	return m.reader.Block()
+	if m.block.Length == 0 {
+		err := m.WriteTo(utils.NewRecordWriter(m.block))
+		if err != nil {
+			logex.Error(err)
+		}
+	}
+	return m.block
 }
 
 func (m *DNSMessage) Equal(m2 *DNSMessage) bool {

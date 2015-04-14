@@ -11,8 +11,7 @@ import (
 )
 
 type CacheBlock struct {
-	Block    *utils.Block
-	Deadline time.Time
+	Msg *dns.DNSMessage
 }
 
 type Wiki struct {
@@ -30,7 +29,7 @@ func NewWiki(c *conf.Config, pool *utils.BlockPool) *Wiki {
 	}
 }
 
-func (w *Wiki) Lookup(msg *dns.DNSMessage) (b *utils.Block, ok bool) {
+func (w *Wiki) Lookup(msg *dns.DNSMessage) (b *dns.DNSMessage, ok bool) {
 	var cacheBlock *CacheBlock
 	key := msg.Key()
 	if key != "" {
@@ -38,38 +37,33 @@ func (w *Wiki) Lookup(msg *dns.DNSMessage) (b *utils.Block, ok bool) {
 		cacheBlock, ok = w.data[key]
 		w.m.RUnlock()
 		if ok {
-			if time.Now().After(cacheBlock.Deadline) {
+			deadline := cacheBlock.Msg.GetDeadline()
+			if time.Now().After(deadline) {
 				w.m.Lock()
 				delete(w.data, key)
 				w.m.Unlock()
-				logex.Info("remove cache", `"`+key+`"`, cacheBlock.Deadline)
+				logex.Info("remove cache", `"`+key+`"`, deadline)
 				return nil, false
 			}
-			logex.Info("get cache", `"`+key+`"`, "ttl:", int(cacheBlock.Deadline.Sub(time.Now()).Seconds()))
-			b = w.pool.Get()
-			cacheBlock.Block.CopyTo(b)
-			return b, true
+			logex.Info("get cache", `"`+key+`"`)
+			return cacheBlock.Msg.Copy(w.pool.Get()), true
 		}
 	}
 	return
 }
 
-func (w *Wiki) WriteDown(msg *dns.DNSMessage, block *utils.Block) bool {
+func (w *Wiki) WriteDown(msg *dns.DNSMessage) bool {
 	key := msg.Key()
 	if key == "" {
 		return false
 	}
-	b := w.pool.Get()
-	block.CopyTo(b)
 
 	if len(msg.Resources) == 0 {
 		return false
 	}
 
-	deadline := time.Now().Add(time.Duration(msg.Resources[0].TTL) / w.TTLRatio * time.Second)
-
 	w.m.Lock()
-	w.data[key] = &CacheBlock{b, deadline}
+	w.data[key] = &CacheBlock{msg}
 	w.m.Unlock()
 	return true
 }

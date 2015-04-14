@@ -43,7 +43,7 @@ func (w *WiseMan) ServeAll() {
 				envelope.Customer.LetItGo()
 				continue
 			}
-			w.book.WriteDown(envelope.Customer.Msg, envelope.Customer.Raw)
+			w.book.WriteDown(envelope.Customer.Msg)
 			// say goodbye
 			w.backDoor <- envelope.Customer
 		case customer = <-w.frontDoor:
@@ -68,13 +68,13 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 
 	logex.Info("here comes a customer")
 	// looking up the wikis.
-	b, ok := w.book.Lookup(msg)
+	respMsg, ok := w.book.Lookup(msg)
 	if ok {
-		copy(b.Block[:2], c.Raw.Block[:2])
-		c.Raw = b
-		c.Msg, err = dns.NewDNSMessage(utils.NewRecordReader(b))
-		if err != nil {
-			return logex.Trace(err, "oo")
+		respMsg.Header.ID = msg.Header.ID
+		c.Msg = respMsg
+		c.SetRaw(respMsg.Block())
+		if err := respMsg.WriteTo(utils.NewRecordWriter(c.Raw)); err != nil {
+			logex.Error(err)
 		}
 		for _, r := range c.Msg.Resources {
 			if r.Type == dns.QTYPE_A {
