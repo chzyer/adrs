@@ -1,5 +1,7 @@
 package main
 
+import "gopkg.in/logex.v1"
+
 func main() {
-	println("hello! adrs")
+	logex.Info("hello! adrs")
 }
