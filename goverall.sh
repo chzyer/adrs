@@ -1,8 +1,7 @@
-#!/bin/bash
-set -e
-
+#!/bin/bash -e
 # usage: ./goverall.sh [func|html]
 # default: generate cover.out
+
 output_null=""
 output_file=".cover.out"
 if [[ "$1" != "" ]]; then
