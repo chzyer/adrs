@@ -73,12 +73,12 @@ func Parse(ret interface{}, reader io.Reader) error {
 		}
 		k, ok := v.FieldByName(title)
 		if !ok {
-			return logex.NewTraceError("not such field name '", title, "'")
+			return logex.NewError("not such field name '", title, "'")
 		}
 
 		f := kindMap[k.Type.String()]
 		if f == nil {
-			return logex.NewTraceError("unknown type to parse '", k.Type.String(), "'")
+			return logex.NewError("unknown type to parse '", k.Type.String(), "'")
 		}
 
 		tmpRet := f.Value()
@@ -124,7 +124,7 @@ func ParseMapString(ret interface{}, s *bufio.Scanner) error {
 
 		sp := strings.Split(line, ":")
 		if len(sp) != 2 {
-			return logex.NewTraceError(`parse error in "`, line, `"`)
+			return logex.NewError(`parse error in "`, line, `"`)
 		}
 		data[strings.TrimSpace(sp[0])] = strings.TrimSpace(sp[1])
 	}

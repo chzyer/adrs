@@ -160,7 +160,7 @@ func mockUdpConn(host string, source []byte) error {
 	}
 	conn, err := net.DialUDP("udp", nil, addr)
 	if err != nil {
-		return logex.NewTraceError(err)
+		return logex.NewError(err)
 	}
 	defer conn.Close()
 
@@ -168,7 +168,7 @@ func mockUdpConn(host string, source []byte) error {
 
 	n, err := conn.Write(source)
 	if err != nil {
-		return logex.NewTraceError(err)
+		return logex.NewError(err)
 	}
 
 	b := make([]byte, 512)
@@ -178,7 +178,7 @@ func mockUdpConn(host string, source []byte) error {
 	}
 
 	if !bytes.Equal(b[:n], source) {
-		return logex.NewTraceError("result not except")
+		return logex.NewError("result not except")
 	}
 	return nil
 }

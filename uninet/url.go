@@ -92,7 +92,7 @@ func ParseURLEx(u string, netType NetType) (URLer, error) {
 		return &HttpURL{base}, nil
 	}
 
-	return nil, logex.NewTraceError("unknown error")
+	return nil, logex.NewError("unknown error")
 
 }
 

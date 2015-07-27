@@ -36,7 +36,7 @@ func NewUniDial(addr URLer) (*UniDial, error) {
 			return nil, logex.Trace(err)
 		}
 	default:
-		return nil, logex.Trace(ErrNotSuchProtocol).Format(addr.Network())
+		return nil, logex.TraceError(ErrNotSuchProtocol).Format(addr.Network())
 	}
 
 	return ud, nil

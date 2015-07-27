@@ -35,7 +35,7 @@ func TestRecordReader(t *testing.T) {
 
 		tmp = make([]byte, 10)
 		err = r.ReadN(tmp, 10)
-		if !logex.Is(err, ErrShortRead) {
+		if !logex.Equal(err, ErrShortRead) {
 			t.Fatal("result not except", err)
 		}
 		r = NewRecordReader(block)
@@ -58,7 +58,7 @@ func TestRecordReader(t *testing.T) {
 			t.Fatal("result not except")
 		}
 		_, err = r.ReadBytes(1)
-		if !logex.Is(err, io.EOF) {
+		if !logex.Equal(err, io.EOF) {
 			t.Fatal("excepting error")
 		}
 		r = NewRecordReader(block)

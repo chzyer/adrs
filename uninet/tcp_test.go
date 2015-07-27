@@ -69,13 +69,13 @@ func TestTCPListen(t *testing.T) {
 func mockTcpConn(addr string, source []byte) error {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		return logex.NewTraceError(err)
+		return logex.NewError(err)
 	}
 	defer conn.Close()
 
 	source = append(utils.Uint16To(uint16(len(source))), source...)
 	if _, err = conn.Write(source); err != nil {
-		return logex.NewTraceError(err)
+		return logex.NewError(err)
 	}
 
 	b := make([]byte, 512)
@@ -93,7 +93,7 @@ func mockTcpConn(addr string, source []byte) error {
 
 	if !bytes.Equal(b[:n], source) {
 		logex.Info(b[:n], source)
-		return logex.NewTraceError("result not except1")
+		return logex.NewError("result not except1")
 	}
 
 	return nil

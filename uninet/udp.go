@@ -94,7 +94,7 @@ func ListenUDP(url *UdpURL) (*UDPListener, error) {
 }
 
 func (u *UDPListener) WriteBlock(b *utils.Block, s *UdpSession) error {
-	return logex.TraceIfError(u.conn.WriteBlockTo(b, s))
+	return logex.Trace(u.conn.WriteBlockTo(b, s))
 }
 
 func (u *UDPListener) ReadBlock(b *utils.Block) (*UdpSession, error) {
@@ -122,11 +122,11 @@ func DialUDP(addr *UdpURL) (*UDPDialer, error) {
 }
 
 func (u *UDPDialer) ReadBlock(b *utils.Block) error {
-	return logex.TraceIfError(u.conn.ReadBlock(b))
+	return logex.Trace(u.conn.ReadBlock(b))
 }
 
 func (u *UDPDialer) WriteBlock(b *utils.Block) error {
-	return logex.TraceIfError(u.conn.WriteBlock(b))
+	return logex.Trace(u.conn.WriteBlock(b))
 }
 
 func (u *UDPDialer) Close() error {

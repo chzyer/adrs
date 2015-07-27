@@ -104,16 +104,16 @@ func (u *UniListener) WriteBlock(b *utils.Block, session Session) error {
 	switch session.NetType() {
 	case NET_TCP:
 		if u.tcp == nil {
-			return logex.NewTraceError("tcp not init but use to send data")
+			return logex.NewError("tcp not init but use to send data")
 		}
-		return logex.TraceIfError(u.tcp.WriteBlock(b, session.(*TcpSession)))
+		return logex.Trace(u.tcp.WriteBlock(b, session.(*TcpSession)))
 	case NET_UDP:
 		if u.udp == nil {
-			return logex.NewTraceError("tcp not init but use to send data")
+			return logex.NewError("tcp not init but use to send data")
 		}
-		return logex.TraceIfError(u.udp.WriteBlock(b, session.(*UdpSession)))
+		return logex.Trace(u.udp.WriteBlock(b, session.(*UdpSession)))
 	}
-	return logex.NewTraceError("unknown session", session)
+	return logex.NewError("unknown session", session)
 }
 
 func IsClosedError(err error) bool {

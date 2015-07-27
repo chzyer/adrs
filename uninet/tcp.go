@@ -124,7 +124,7 @@ func (t *TCPListener) accept(c *tcpConn) {
 }
 
 func (t *TCPListener) Close() error {
-	return logex.TraceIfError(t.listener.Close())
+	return logex.Trace(t.listener.Close())
 }
 
 func (t *TCPListener) ReadBlock(b *utils.Block) (*TcpSession, error) {
@@ -188,5 +188,5 @@ func (t *TCPDialer) WriteBlock(b *utils.Block) error {
 }
 
 func (t *TCPDialer) Close() error {
-	return logex.TraceIfError(t.conn.Close())
+	return logex.Trace(t.conn.Close())
 }

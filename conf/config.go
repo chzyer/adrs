@@ -75,7 +75,7 @@ func ConvRouter(raw map[string][]string, group map[string][]uninet.URLer) (map[s
 		for _, domain := range domains {
 			router[domain], ok = group[groupName]
 			if !ok {
-				return nil, logex.NewTraceError("group name '", groupName, "' not found")
+				return nil, logex.NewError("group name '", groupName, "' not found")
 			}
 		}
 	}
