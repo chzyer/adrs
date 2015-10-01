@@ -66,7 +66,7 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 		return logex.Trace(err)
 	}
 
-	logex.Info("here comes a customer")
+	logex.Debug("here comes a customer")
 	// looking up the wikis.
 	respMsg, ok := w.book.Lookup(msg)
 	if ok {
@@ -89,7 +89,7 @@ func (w *WiseMan) serve(c *customer.Customer) error {
 	// we don't know where to send yet
 	mail := w.writeMail(c, msg)
 
-	logex.Info("sending a mail to others")
+	logex.Debug("sending a mail to others")
 
 	// but don't worry, my mail man know
 	w.sendMail(mail, c)

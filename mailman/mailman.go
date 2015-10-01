@@ -71,7 +71,7 @@ func (m *MailMan) CheckingOutgoingBox() {
 			m.incomingBox <- envelope
 			continue
 		}
-		logex.Info("query domain:", to)
+		logex.Info("query domain:", to, envelope.Mail.Content.GetQueryAddrString())
 
 		mbs, err := GetMailBoxs(to, m.pool)
 		if err != nil {

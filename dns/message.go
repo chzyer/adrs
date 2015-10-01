@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"strings"
 	"time"
 
 	"github.com/chzyer/adrs/utils"
@@ -77,6 +78,10 @@ func (m *DNSMessage) Key() string {
 		return ""
 	}
 	return qs[0].Key()
+}
+
+func (m *DNSMessage) GetQueryAddrString() string {
+	return strings.Join(m.GetQueryAddr(), ".")
 }
 
 func (m *DNSMessage) GetQueryAddr() []string {
